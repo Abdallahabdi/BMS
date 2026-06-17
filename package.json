@@ -1,0 +1,25 @@
+{
+  "name": "mern_lost_found_root",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix frontend\" \"npm run dev --prefix backend\"",
+    "build": "npm install --prefix frontend && npm run build --prefix frontend && npm install --prefix backend",
+    "start": "node backend/server.js"
+  },
+  "devDependencies": {
+    "@babel/preset-flow": "^7.27.1",
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "@babel/cli": "^7.28.6",
+    "@babel/core": "^7.29.0",
+    "@babel/preset-react": "^7.28.5",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.2.0",
+    "lucide-react": "^0.575.0",
+    "npx": "^10.2.2",
+    "recharts": "^3.8.1",
+    "update-browserslist-db": "^1.2.3"
+  }
+}
