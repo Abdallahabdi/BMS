@@ -1,70 +1,48 @@
-import nodemailer from "nodemailer";
+import axios from "axios";
 
-let transporter;
-
-export const sendEmail = async (to, subject, text, html = null) => {
-
-  if (!to?.trim()) {
-    throw new Error("Recipient email is required");
-  }
-
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    throw new Error("EMAIL_USER or EMAIL_PASS is missing");
-  }
-
-  if (!transporter) {
-
-    transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-
-      connectionTimeout: 60000,
-      greetingTimeout: 60000,
-      socketTimeout: 60000,
-    });
-
-    await transporter.verify();
-
-    console.log("✅ Gmail SMTP Connected");
-  }
-
-
+export const sendEmail = async (
+  to,
+  subject,
+  text,
+  html = null
+) => {
   try {
+    if (!to?.trim()) {
+      throw new Error("Recipient email is required");
+    }
 
-    console.log("📨 Sending Gmail Email (Port 465)");
-    console.log("TO:", to);
+    if (!process.env.PROMAILER_API_KEY) {
+      throw new Error("PROMAILER_API_KEY is missing");
+    }
 
-
-    const info = await transporter.sendMail({
-
-      from: `"BAAFIN SYSTEM" <${process.env.EMAIL_USER}>`,
-
+    const payload = {
       to: to.trim(),
-
       subject,
-
       text,
-
       html: html || `<p>${text}</p>`,
-    });
+      smtpId: process.env.SMTP_CONNECTION_ID,
+    };
 
+    const response = await axios.post(
+      "https://mailserver.automationlounge.com/api/v1/messages/send",
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PROMAILER_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        timeout: 60000,
+      }
+    );
 
-    console.log("✅ Email Sent:", info.messageId);
+    console.log("✅ Email Sent:", response.data);
 
-    return info;
-
-
+    return response.data;
   } catch (error) {
-
-    console.error("❌ Gmail SMTP Error:", error);
-
+    console.error(
+      "❌ ProMailer Error:",
+      error.response?.data || error.message
+    );
     throw error;
-
   }
 };
