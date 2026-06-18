@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
   email:    { type: String, required: true, unique: true, lowercase: true, trim: true },
   password: { type: String, required: true },
   role:     { type: String, enum: ["user", "admin"], default: "user", index: true },
-  phone:    { type: String, required: true, trim: true },
+  phone:    { type: String, required: true, trim: true, unique: true },
   gender:   { type: String, required: true },
   avatar:   { type: String },               // profile picture URL
   resetOTP:       { type: String },
