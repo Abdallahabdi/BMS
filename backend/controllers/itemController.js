@@ -210,6 +210,10 @@ export const updateItem = async (req, res) => {
       updateDataRaw.image = await uploadToImgBB(req.file.buffer);
     }
 
+    if (updateDataRaw.dateTime) {
+      updateDataRaw.dateTime = new Date(updateDataRaw.dateTime);
+    }
+
     const item = await Item.findByIdAndUpdate(req.params.id, updateDataRaw, { new: true });
     if (!item) return res.status(404).json({ message: "Item not found" });
 

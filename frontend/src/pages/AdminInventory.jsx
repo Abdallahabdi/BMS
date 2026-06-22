@@ -440,6 +440,11 @@ const AdminInventory = () => {
                 <input value={editingItem.parkZone || ''} onChange={e => handleEditChange('parkZone', e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl" />
               </div>
 
+              <div>
+                <label className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-1">Date & Time</label>
+                <input type="datetime-local" value={editingItem.dateTime ? editingItem.dateTime.toString().substring(0, 16) : ''} onChange={e => handleEditChange('dateTime', e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl" />
+              </div>
+
               <div className="md:col-span-2">
                 <label className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-1">Description</label>
                 <textarea value={editingItem.description || ''} onChange={e => handleEditChange('description', e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl h-28" />
@@ -457,16 +462,12 @@ const AdminInventory = () => {
 
               <div>
                 <label className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-1">Status</label>
-                <select value={editingItem.status || ''} onChange={e => handleEditChange('status', e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl">
-                  <option value="">(no change)</option>
+                <select value={editingItem.status || 'pending'} onChange={e => handleEditChange('status', e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl">
                   <option value="pending">Pending</option>
                   <option value="verified">Verified</option>
                   <option value="matched">Matched</option>
                   <option value="claimed">Claimed</option>
                   <option value="returned">Returned</option>
-                  <option value="lost">Lost</option>
-                  <option value="found">Found</option>
-                  <option value="approved">Approved</option>
                 </select>
               </div>
 

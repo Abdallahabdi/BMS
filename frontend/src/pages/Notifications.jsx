@@ -16,7 +16,7 @@ export default function Notifications({ toggleSidebar }) {
     try {
       setLoading(true);
       const res = await API.get('/notifications');
-      setNotifications(Array.isArray(res.data) ? res.data : []);
+      setNotifications(Array.isArray(res.data.data) ? res.data.data : []);
     } catch (error) {
       console.error("Error fetching notifications:", error);
       toast.error("Soo shubista ogeysiisyada ayaa fashilantay.");
