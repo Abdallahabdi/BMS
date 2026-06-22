@@ -13,7 +13,8 @@ export const createItem = async (req,res)=>{
       description: req.body.description,
       color: req.body.color,
       parkZone: req.body.parkZone,
-      additionalInfo: req.body.additionalInfo
+      additionalInfo: req.body.additionalInfo,
+      dateTime: req.body.dateTime
     };
 
     const itemName = (raw.itemName || "").toString().trim();
@@ -23,6 +24,7 @@ export const createItem = async (req,res)=>{
     const color = raw.color ? raw.color.toString().trim() : undefined;
     const parkZone = raw.parkZone ? raw.parkZone.toString().trim() : undefined;
     const additionalInfo = raw.additionalInfo ? raw.additionalInfo.toString().trim() : undefined;
+    const dateTime = raw.dateTime ? new Date(raw.dateTime) : undefined;
 
     // Basic validation
     const allowedTypes = ["lost","found"];
@@ -58,6 +60,7 @@ export const createItem = async (req,res)=>{
       color,
       parkZone,
       additionalInfo,
+      dateTime,
       reportedBy: req.user._id
     };
 
