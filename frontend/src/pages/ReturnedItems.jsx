@@ -16,8 +16,8 @@ const ReturnedItems = ({ toggleSidebar }) => {
       setLoading(true);
       const res = await API.get('/items?limit=1000');
       if (res.data && Array.isArray(res.data.items)) {
-        // Filter only items that have been returned or claimed successfully
-        const returned = res.data.items.filter(i => i.status === 'returned' || i.status === 'claimed');
+        // Filter only items that have been returned successfully
+        const returned = res.data.items.filter(i => i.status === 'returned');
         setItems(returned);
       }
     } catch (error) {
