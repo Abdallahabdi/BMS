@@ -47,9 +47,11 @@ const UserDashboard = ({ toggleSidebar }) => {
       ]);
 
       setItems(Array.isArray(itemsRes?.data) ? itemsRes.data : []);
-      setMatches(Array.isArray(matchesRes?.data) ? matchesRes.data : []);
-      setClaims(Array.isArray(claimsRes?.data) ? claimsRes.data : []);
-      setNotifications(Array.isArray(notifRes?.data) ? notifRes.data : []);
+      setMatches(Array.isArray(matchesRes?.data) ? matchesRes.data : Array.isArray(matchesRes?.data?.matches) ? matchesRes.data.matches : []);
+      const claimsRaw = claimsRes?.data;
+      setClaims(Array.isArray(claimsRaw) ? claimsRaw : Array.isArray(claimsRaw?.claims) ? claimsRaw.claims : []);
+      const notifRaw = notifRes?.data;
+      setNotifications(Array.isArray(notifRaw?.data) ? notifRaw.data : Array.isArray(notifRaw) ? notifRaw : []);
 
     } catch (error) {
       console.error(error);
