@@ -238,29 +238,33 @@ export const updateItem = async (req, res) => {
 // @access Private (Admin)
 export const completeHandover = async (req, res) => {
   try {
-    const foundItem = await Item.findById(req.params.id);
-    if (!foundItem) return res.status(404).json({ message: 'Item not found' });
+    const item = await Item.findById(req.params.id);
+    if (!item) return res.status(404).json({ message: 'Item not found' });
 
-    // Mark the found item as returned
-    foundItem.status = 'returned';
-    await foundItem.save();
+    // Mark the item as returned
+    item.status = 'returned';
+    await item.save();
 
-    // Find best matching lost item and mark it returned too
-    const lostItems = await Item.find({ itemType: 'lost', status: { $ne: 'returned' } });
+    // Find best matching opposite item and mark it returned too
+    const targetType = item.itemType === 'found' ? 'lost' : 'found';
+    const oppositeItems = await Item.find({ itemType: targetType, status: { $ne: 'returned' } });
+    
     let bestMatch = null;
     let highestScore = 0;
 
-    for (const lost of lostItems) {
+    for (const opposite of oppositeItems) {
       let score = 0;
-      if (lost.itemName && foundItem.itemName &&
-          lost.itemName.toLowerCase().includes(foundItem.itemName.toLowerCase())) score += 30;
-      if (lost.category === foundItem.category) score += 25;
-      if (lost.color && lost.color === foundItem.color) score += 25;
-      if (lost.parkZone && lost.parkZone === foundItem.parkZone) score += 20;
+      if (opposite.itemName && item.itemName &&
+          String(opposite.itemName).toLowerCase().includes(String(item.itemName).toLowerCase())) {
+        score += 30;
+      }
+      if (opposite.category === item.category) score += 25;
+      if (opposite.color && opposite.color === item.color) score += 25;
+      if (opposite.parkZone && opposite.parkZone === item.parkZone) score += 20;
 
       if (score >= 40 && score > highestScore) {
         highestScore = score;
-        bestMatch = lost;
+        bestMatch = opposite;
       }
     }
 
@@ -269,17 +273,22 @@ export const completeHandover = async (req, res) => {
       await bestMatch.save();
     }
 
-    await logAction(req.user._id, 'UPDATE', 'Item', foundItem._id,
-      `Handover completed for: ${foundItem.itemName}${bestMatch ? ` — lost item also marked returned: ${bestMatch.itemName}` : ''}`
-    );
+    try {
+      await logAction(req.user._id, 'UPDATE', 'Item', item._id,
+        `Handover completed for: ${item.itemName}${bestMatch ? ` — matched ${targetType} item also marked returned: ${bestMatch.itemName}` : ''}`
+      );
+    } catch (logErr) {
+      console.error("Logging failed during handover", logErr);
+    }
 
     res.json({
       message: 'Handover completed',
-      foundItem,
+      foundItem: item, // kept for backwards compatibility with frontend
       lostItemUpdated: bestMatch || null
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error completing handover', error: error.message });
+    console.error("Handover Error:", error);
+    res.status(500).json({ message: "Error completing handover", error: error.message });
   }
 };
 
