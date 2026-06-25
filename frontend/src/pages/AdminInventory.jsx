@@ -111,9 +111,7 @@ const AdminInventory = () => {
       if (editingItem.dateTime !== undefined) formData.append('dateTime', editingItem.dateTime);
       if (editImageFile) formData.append('image', editImageFile);
 
-      await API.patch(`/items/${editingItem._id}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      await API.patch(`/items/${editingItem._id}`, formData);
 
       toast.success('Item updated');
       setEditingItem(null);
