@@ -21,7 +21,6 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import auditRoutes from "./routes/auditRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import statsRoutes from "./routes/statsRoutes.js";
-import returnRoutes from "./routes/returnRoutes.js";
 
 import { initSocket } from "./sockets/socketServer.js";
 
@@ -133,7 +132,6 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/audit", auditRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/stats", statsRoutes);
-app.use("/api/returns", returnRoutes);
 
 // Root Route & Health Check
 app.get("/", (req, res) => res.send("Baafin Backend API is running..."));
