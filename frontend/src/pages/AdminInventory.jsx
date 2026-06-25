@@ -51,7 +51,8 @@ const AdminInventory = () => {
         params: {
           page: currentPage,
           limit: itemsPerPage,
-          search: searchQuery
+          search: searchQuery,
+          includeReturned: 'true'
         }
       });
 
@@ -107,6 +108,7 @@ const AdminInventory = () => {
       if (editingItem.color !== undefined) formData.append('color', editingItem.color);
       if (editingItem.parkZone !== undefined) formData.append('parkZone', editingItem.parkZone);
       if (editingItem.additionalInfo !== undefined) formData.append('additionalInfo', editingItem.additionalInfo);
+      if (editingItem.dateTime !== undefined) formData.append('dateTime', editingItem.dateTime);
       if (editImageFile) formData.append('image', editImageFile);
 
       await API.patch(`/items/${editingItem._id}`, formData, {

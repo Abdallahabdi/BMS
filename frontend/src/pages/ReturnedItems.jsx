@@ -14,11 +14,9 @@ const ReturnedItems = ({ toggleSidebar }) => {
   const fetchReturnedItems = async () => {
     try {
       setLoading(true);
-      const res = await API.get('/items?limit=1000');
+      const res = await API.get('/items?limit=1000&status=returned');
       if (res.data && Array.isArray(res.data.items)) {
-        // Filter only items that have been returned successfully
-        const returned = res.data.items.filter(i => i.status === 'returned');
-        setItems(returned);
+        setItems(res.data.items);
       }
     } catch (error) {
       console.error("Error fetching returned items:", error);

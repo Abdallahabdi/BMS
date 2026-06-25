@@ -10,8 +10,8 @@ export const checkAndNotifyMatch = async (newItem) => {
   try {
     const queryType = newItem.itemType === "lost" ? "found" : "lost";
     
-    // Find items of the opposite type
-    const otherItems = await Item.find({ itemType: queryType }).populate("reportedBy");
+    // Find items of the opposite type that are not returned
+    const otherItems = await Item.find({ itemType: queryType, status: { $ne: "returned" } }).populate("reportedBy");
     // Ensure the new item has reportedBy populated for emails
     await newItem.populate("reportedBy");
 

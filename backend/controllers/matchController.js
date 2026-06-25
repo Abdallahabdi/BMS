@@ -2,8 +2,8 @@ import Item from "../models/Item.js";
 
 export const getMatches = async (req, res) => {
   try {
-    const lostItems = await Item.find({ itemType: "lost" }).populate("reportedBy");
-    const foundItems = await Item.find({ itemType: "found" }).populate("reportedBy");
+    const lostItems = await Item.find({ itemType: "lost", status: { $ne: "returned" } }).populate("reportedBy");
+    const foundItems = await Item.find({ itemType: "found", status: { $ne: "returned" } }).populate("reportedBy");
 
     let matches = [];
 
@@ -60,7 +60,7 @@ export const getMatchById = async (req, res) => {
     let highestScore = 0;
 
     const queryType = targetItem.itemType === "lost" ? "found" : "lost";
-    const otherItems = await Item.find({ itemType: queryType }).populate("reportedBy");
+    const otherItems = await Item.find({ itemType: queryType, status: { $ne: "returned" } }).populate("reportedBy");
 
     for (const other of otherItems) {
       let score = 0;

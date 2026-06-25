@@ -220,37 +220,26 @@ export default function ReportItem({ user, toggleSidebar }) {
                   {/* Location Zones */}
                   <div className="group">
                     <label className="flex items-center justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">
-                      <span>Zone Selection (Location)</span>
+                      <span className="flex items-center gap-2"><MapPin size={12} /> Zone Selection (Location)</span>
                       <span className="text-emerald-500 normal-case tracking-normal font-bold flex items-center gap-1"><Info size={12} /> Required</span>
                     </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      {zones.map((z) => {
-                        const Icon = z.icon;
-                        const isSelected = formData.parkZone === z.name;
-                        return (
-                          <button
-                            key={z.name}
-                            type="button"
-                            onClick={() => setFormData(p => ({ ...p, parkZone: z.name }))}
-                            className={`relative p-4 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all duration-300 border ${isSelected
-                                ? `bg-white border-emerald-500 shadow-[0_4px_20px_rgba(16,185,129,0.15)] ring-2 ring-emerald-500/20 scale-105 z-10`
-                                : `bg-white/40 border-slate-100 hover:bg-white hover:border-emerald-200 hover:shadow-md hover:-translate-y-1`
-                              }`}
-                          >
-                            <div className={`w-12 h-12 rounded-[1rem] flex items-center justify-center transition-colors shadow-sm ${isSelected ? "bg-emerald-100 text-emerald-600" : z.bg + " " + z.color
-                              }`}>
-                              <Icon size={22} strokeWidth={isSelected ? 2.5 : 2} />
-                            </div>
-                            <span className={`text-[10px] sm:text-[11px] font-black text-center leading-tight transition-colors ${isSelected ? "text-emerald-700" : "text-slate-600"
-                              }`}>
-                              {z.name}
-                            </span>
-                            {isSelected && (
-                              <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                            )}
-                          </button>
-                        );
-                      })}
+                    <div className="relative">
+                      <select
+                        name="parkZone"
+                        value={formData.parkZone}
+                        onChange={handleChange}
+                        className="w-full p-4 bg-white/50 backdrop-blur-sm rounded-2xl border border-slate-200/60 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 outline-none focus:border-emerald-500/30 transition-all duration-300 font-bold text-slate-700 appearance-none shadow-sm hover:border-emerald-500/30 cursor-pointer"
+                      >
+                        <option value="" disabled>Select Location / Zone</option>
+                        {zones.map((z) => (
+                          <option key={z.name} value={z.name}>
+                            {z.name}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-emerald-500">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                      </div>
                     </div>
                   </div>
 

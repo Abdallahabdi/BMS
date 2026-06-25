@@ -106,6 +106,13 @@ export const getItems = async (req,res)=>{
     if (itemType && itemType !== 'All') filter.itemType = itemType.toLowerCase();
     if (category) filter.category = category;
     
+    // Automatically exclude 'returned' items unless explicitly requested
+    if (req.query.status) {
+      filter.status = req.query.status;
+    } else if (req.query.includeReturned !== 'true') {
+      filter.status = { $ne: 'returned' };
+    }
+
     if (search) {
       filter.$or = [
         { itemName: { $regex: search, $options: "i" } },
