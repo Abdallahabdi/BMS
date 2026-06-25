@@ -241,9 +241,9 @@ export const completeHandover = async (req, res) => {
     const item = await Item.findById(req.params.id);
     if (!item) return res.status(404).json({ message: 'Item not found' });
 
-    // Mark the item as returned
-    item.status = 'returned';
-    await item.save();
+    // Mark the item as returned using updateOne to bypass strict validation on old missing fields
+    await Item.updateOne({ _id: item._id }, { $set: { status: 'returned' } });
+    item.status = 'returned'; // update local object for later use
 
     // Find best matching opposite item and mark it returned too
     const targetType = item.itemType === 'found' ? 'lost' : 'found';
@@ -258,9 +258,9 @@ export const completeHandover = async (req, res) => {
           String(opposite.itemName).toLowerCase().includes(String(item.itemName).toLowerCase())) {
         score += 30;
       }
-      if (opposite.category === item.category) score += 25;
-      if (opposite.color && opposite.color === item.color) score += 25;
-      if (opposite.parkZone && opposite.parkZone === item.parkZone) score += 20;
+      if (opposite.category && item.category && opposite.category === item.category) score += 25;
+      if (opposite.color && item.color && opposite.color === item.color) score += 25;
+      if (opposite.parkZone && item.parkZone && opposite.parkZone === item.parkZone) score += 20;
 
       if (score >= 40 && score > highestScore) {
         highestScore = score;
@@ -269,8 +269,8 @@ export const completeHandover = async (req, res) => {
     }
 
     if (bestMatch) {
+      await Item.updateOne({ _id: bestMatch._id }, { $set: { status: 'returned' } });
       bestMatch.status = 'returned';
-      await bestMatch.save();
     }
 
     try {
