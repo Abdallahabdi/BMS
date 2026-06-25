@@ -1,9 +1,11 @@
-import Item from "../models/Item.js"
+import Item from "../models/Item.js";
 import { logAction } from "./auditController.js";
 import { checkAndNotifyMatch } from "../utils/matchUtils.js";
 import { uploadToImgBB } from "../utils/imageUpload.js";
 
-export const createItem = async (req,res)=>{
+// @desc    Create a new lost/found item
+// @route   POST /api/items
+export const createItem = async (req, res) => {
   try {
     // Sanitize and normalize incoming fields
     const raw = {
@@ -27,29 +29,21 @@ export const createItem = async (req,res)=>{
     const dateTime = raw.dateTime ? new Date(raw.dateTime) : undefined;
 
     // Basic validation
-    const allowedTypes = ["lost","found"];
+    const allowedTypes = ["lost", "found"];
     if (!itemName || !itemType || !category) {
-      return res.status(400).json({ success:false, message: "Fadlan buuxi itemName, itemType iyo category." });
+      return res.status(400).json({ success: false, message: "Fadlan buuxi itemName, itemType iyo category." });
     }
 
     if (!allowedTypes.includes(itemType)) {
-      return res.status(400).json({ success:false, message: "itemType waa inuu noqdaa 'lost' ama 'found'." });
+      return res.status(400).json({ success: false, message: "itemType waa inuu noqdaa 'lost' ama 'found'." });
     }
 
-    if (itemName.length < 2 || itemName.length > 200) {
-      return res.status(400).json({ success:false, message: "Magaca shaygu waa inuu ahaadaa ugu yaraan 2 xaraf oo aan ka badnayn 200." });
+    if (itemName.length < 2 || itemName.length > 20) {
+      return res.status(400).json({ success: false, message: "Magaca shaygu waa inuu ahaadaa ugu yaraan 2 xaraf oo aan ka badnayn 20." });
     }
 
-    if (category.length < 1 || category.length > 100) {
-      return res.status(400).json({ success:false, message: "Category-ga waa inuu noqdaa xarfo ka yar 100." });
-    }
-
-    if (parkZone && (parkZone.length < 2 || parkZone.length > 100)) {
-      return res.status(400).json({ success:false, message: "Park/Zone waa inuu ahaadaa 2-100 xaraf." });
-    }
-
-    if (color && color.length > 50) {
-      return res.status(400).json({ success:false, message: "Color waa inuu ka yar yahay 50 xaraf." });
+    if (color && color.length > 10) {
+      return res.status(400).json({ success: false, message: "Color waa inuu ka yar yahay 10 xaraf." });
     }
 
     const itemData = {
@@ -90,9 +84,11 @@ export const createItem = async (req,res)=>{
       details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
-}
+};
 
-export const getItems = async (req,res)=>{
+// @desc    Get all items with pagination, filters and search
+// @route   GET /api/items
+export const getItems = async (req, res) => {
   try {
     const { 
       page = 1, 
@@ -123,7 +119,7 @@ export const getItems = async (req,res)=>{
     const skip = (parseInt(page) - 1) * parseInt(limit);
     
     const items = await Item.find(filter)
-      .populate("reportedBy","name email")
+      .populate("reportedBy", "name email")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
@@ -140,25 +136,29 @@ export const getItems = async (req,res)=>{
   } catch (error) {
     res.status(500).json({ message: "Error fetching items", error: error.message });
   }
-}
+};
 
-export const verifyItem = async (req,res)=>{
+// @desc    Verify item status
+// @route   PATCH /api/items/:id/verify
+export const verifyItem = async (req, res) => {
   try {
-    const item = await Item.findById(req.params.id)
-    if (!item) return res.status(404).json({message:"Item not found"});
+    const item = await Item.findById(req.params.id);
+    if (!item) return res.status(404).json({ message: "Item not found" });
     
-    item.status="verified"
-    await item.save()
+    item.status = "verified";
+    await item.save();
 
     // Record the verification action in the audit log
     await logAction(req.user._id, "UPDATE", "Item", item._id, `Verified item: ${item.itemName}`);
 
-    res.json({message:"Item verified"})
+    res.json({ message: "Item verified", item });
   } catch (error) {
     res.status(500).json({ message: "Error verifying item", error: error.message });
   }
-}
+};
 
+// @desc    Get items reported by the logged-in user
+// @route   GET /api/items/my-items
 export const getMyItems = async (req, res) => {
   try {
     const items = await Item.find({ reportedBy: req.user._id }).sort({ createdAt: -1 });
@@ -166,8 +166,10 @@ export const getMyItems = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Error fetching your items", error: error.message });
   }
-}
+};
 
+// @desc    Delete an item
+// @route   DELETE /api/items/:id
 export const deleteItem = async (req, res) => {
   try {
     const item = await Item.findById(req.params.id);
@@ -175,15 +177,17 @@ export const deleteItem = async (req, res) => {
 
     await item.deleteOne();
 
-    // deleting an item is a significant action, so we log it in the audit log
+    // Log the delete action
     await logAction(req.user._id, "DELETE", "Item", req.params.id, `Deleted item: ${item.itemName}`);
 
     res.json({ message: "Item deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Error deleting item", error: error.message });
   }
-}
+};
 
+// @desc    Update item details
+// @route   PUT /api/items/:id
 export const updateItem = async (req, res) => {
   try {
     const updateDataRaw = { ...req.body };
@@ -191,25 +195,25 @@ export const updateItem = async (req, res) => {
     // Validate fields if provided
     if (updateDataRaw.itemName !== undefined) {
       const nm = updateDataRaw.itemName.toString().trim();
-      if (nm.length < 2 || nm.length > 200) return res.status(400).json({ success:false, message: "Magaca shaygu waa inuu ahaadaa ugu yaraan 2 xaraf oo aan ka badnayn 200." });
+      if (nm.length < 2 || nm.length > 200) return res.status(400).json({ success: false, message: "Magaca shaygu waa inuu ahaadaa ugu yaraan 2 xaraf oo aan ka badnayn 200." });
       updateDataRaw.itemName = nm;
     }
 
     if (updateDataRaw.itemType !== undefined) {
       const it = updateDataRaw.itemType.toString().trim().toLowerCase();
-      if (!["lost","found"].includes(it)) return res.status(400).json({ success:false, message: "itemType waa inuu noqdaa 'lost' ama 'found'." });
+      if (!["lost", "found"].includes(it)) return res.status(400).json({ success: false, message: "itemType waa inuu noqdaa 'lost' ama 'found'." });
       updateDataRaw.itemType = it;
     }
 
     if (updateDataRaw.category !== undefined) {
       const cat = updateDataRaw.category.toString().trim();
-      if (cat.length < 1 || cat.length > 100) return res.status(400).json({ success:false, message: "Category-ga waa inuu noqdaa xarfo ka yar 100." });
+      if (cat.length < 1 || cat.length > 100) return res.status(400).json({ success: false, message: "Category-ga waa inuu noqdaa xarfo ka yar 100." });
       updateDataRaw.category = cat;
     }
 
     if (updateDataRaw.parkZone !== undefined) {
       const pz = updateDataRaw.parkZone.toString().trim();
-      if (pz && (pz.length < 2 || pz.length > 100)) return res.status(400).json({ success:false, message: "Park/Zone waa inuu ahaadaa 2-100 xaraf." });
+      if (pz && (pz.length < 2 || pz.length > 100)) return res.status(400).json({ success: false, message: "Park/Zone waa inuu ahaadaa 2-100 xaraf." });
       updateDataRaw.parkZone = pz;
     }
 
@@ -231,21 +235,20 @@ export const updateItem = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Error updating item", error: error.message });
   }
-}
+};
 
-// @desc  Complete handover — mark found item + matched lost item as 'returned'
-// @route PATCH /api/items/:id/handover
-// @access Private (Admin)
+// @desc    Complete handover — mark found item + matched lost item as 'returned'
+// @route   PATCH /api/items/:id/handover
 export const completeHandover = async (req, res) => {
   try {
     const item = await Item.findById(req.params.id);
     if (!item) return res.status(404).json({ message: 'Item not found' });
 
-    // Mark the item as returned using updateOne to bypass strict validation on old missing fields
+    // Mark the item as returned
     await Item.updateOne({ _id: item._id }, { $set: { status: 'returned' } });
-    item.status = 'returned'; // update local object for later use
+    item.status = 'returned'; 
 
-    // Find best matching opposite item and mark it returned too
+    // Find best matching opposite item
     const targetType = item.itemType === 'found' ? 'lost' : 'found';
     const oppositeItems = await Item.find({ itemType: targetType, status: { $ne: 'returned' } });
     
@@ -283,7 +286,7 @@ export const completeHandover = async (req, res) => {
 
     res.json({
       message: 'Handover completed',
-      foundItem: item, // kept for backwards compatibility with frontend
+      foundItem: item,
       lostItemUpdated: bestMatch || null
     });
   } catch (error) {
@@ -292,6 +295,8 @@ export const completeHandover = async (req, res) => {
   }
 };
 
+// @desc    Get single item by ID
+// @route   GET /api/items/:id
 export const getItemById = async (req, res) => {
   try {
     const item = await Item.findById(req.params.id).populate("reportedBy", "name email");
@@ -300,4 +305,4 @@ export const getItemById = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Error fetching item", error: error.message });
   }
-}
+};
