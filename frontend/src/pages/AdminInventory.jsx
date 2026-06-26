@@ -413,14 +413,14 @@ const AdminInventory = () => {
             {/* Modal Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 flex-shrink-0">
               <div>
-                <h2 className="font-black text-lg text-slate-900">Bedel Sifooyinka Alaabta</h2>
-                <p className="text-xs text-slate-400 font-medium hidden sm:block">Wax ka bedel xogta alaabtan si sax ah</p>
+                <h2 className="font-black text-lg text-slate-900">Update Item</h2>
+                <p className="text-xs text-slate-400 font-medium hidden sm:block">Update the details of this item accurately</p>
               </div>
               <button 
                 onClick={() => setEditingItem(null)} 
                 className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors font-bold text-sm"
               >
-                Xir
+                Close
               </button>
             </div>
 
