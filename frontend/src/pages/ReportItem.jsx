@@ -73,7 +73,7 @@ export default function ReportItem({ user, toggleSidebar }) {
     { name: "Maqaayadda Cuntada", icon: Utensils, color: "text-red-500", bg: "bg-red-500/10" },
     { name: "Albaabka Weyn", icon: DoorOpen, color: "text-emerald-500", bg: "bg-emerald-500/10" },
     { name: "Masaajidka", icon: MoonStar, color: "text-indigo-500", bg: "bg-indigo-500/10" },
-    { name: "Others", icon: OtherIcon, color: "text-yellow-500", bg: "bg-yellow-500/10" }
+    { name: "Others", icon: Box, color: "text-yellow-500", bg: "bg-yellow-500/10" }
   ];
   const cats = ["Electronics", "Clothing", "Documents", "Keys", "Bugs", "Other"];
 
