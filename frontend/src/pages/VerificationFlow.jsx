@@ -64,7 +64,6 @@ const VerificationFlow = ({ toggleSidebar }) => {
      </div>
   );
 
-  // Defensive defaults: ensure `item` and `claimer` are objects so property access is safe
   const { item = {}, claimer = {} } = claim;
   const allChecked = checks.every(c => c === true);
 
@@ -128,8 +127,8 @@ const VerificationFlow = ({ toggleSidebar }) => {
                {item?.image ? (
                  <>
                    <img src={getImageUrl(item?.image)} className="w-full h-full object-cover opacity-80" alt="item proof" />
-                   {/* Scanning overlay effect */}
-                   <div className="absolute top-0 left-0 w-full h-1 bg-emerald-400/50 shadow-[0_0_15px_#34d399] opacity-50 animate-scan"></div>
+                   {/* Khadka dhuuqista (Scanning effect) oo loo beddelay Tailwind CSS */}
+                   <div className="absolute top-0 left-0 w-full h-1 bg-emerald-400/50 shadow-[0_0_15px_#34d399] opacity-50 [animation:scan_3s_linear_infinite]"></div>
                  </>
                ) : (
                  <div className="flex flex-col items-center opacity-30">
@@ -185,7 +184,7 @@ const VerificationFlow = ({ toggleSidebar }) => {
             </div>
           </div>
 
-          {/* SECURITY CHECKLIST */}
+          {/* SECURITY CHECKLIST & ACTIONS */}
           <div className="lg:col-span-4 bg-slate-900/40 backdrop-blur-xl border border-slate-800/80 rounded-[2.5rem] p-8 shadow-2xl flex flex-col justify-between">
             <div>
                <div className="flex items-center gap-3 mb-8">
@@ -223,7 +222,8 @@ const VerificationFlow = ({ toggleSidebar }) => {
                   </p>
                </div>
                
-               {claim.status === 'pending' && (
+               {/* Halkan waa qaybtii badamada (Action Buttons) oo dhammaystiran */}
+               {claim.status === 'pending' ? (
                  <div className="flex flex-col gap-4">
                    <button 
                      onClick={() => handleStatusUpdate('approved')}
@@ -241,30 +241,16 @@ const VerificationFlow = ({ toggleSidebar }) => {
                      {actionLoading ? <Loader2 className="animate-spin" size={18}/> : <XCircle size={18} />} Reject Protocol
                    </button>
                  </div>
-               )}
-
-               {claim.status !== 'pending' && (
-                  <div className="p-6 text-center border border-slate-800 rounded-2xl bg-slate-900/50">
-                     <p className="text-xs font-black uppercase tracking-widest text-slate-500">Claim Status</p>
-                     <p className={`text-xl font-black mt-2 capitalize ${claim.status === 'approved' ? 'text-emerald-400' : 'text-red-400'}`}>{claim.status}</p>
-                  </div>
+               ) : (
+                 <div className="p-6 text-center border border-slate-800 rounded-2xl bg-slate-900/50">
+                    <p className="text-xs font-black uppercase tracking-widest text-slate-500">Claim Status</p>
+                    <p className={`text-xl font-black mt-2 capitalize ${claim.status === 'approved' ? 'text-emerald-400' : 'text-red-400'}`}>{claim.status}</p>
+                 </div>
                )}
             </div>
           </div>
         </div>
       </div>
-      
-      {/* Global CSS for scanning animation */}
-      <style>{`
-        @keyframes scan {
-          0% { transform: translateY(0); }
-          50% { transform: translateY(400px); }
-          100% { transform: translateY(0); }
-        }
-        .animate-scan {
-          animation: scan 3s linear infinite;
-        }
-      `}</style>
     </div>
   );
 };
