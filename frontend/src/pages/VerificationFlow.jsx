@@ -228,7 +228,7 @@ const VerificationFlow = ({ toggleSidebar }) => {
                    <button 
                      onClick={() => handleStatusUpdate('approved')}
                      disabled={actionLoading || !allChecked}
-                     className="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-black text-xs uppercase tracking-widest py-5 rounded-2xl flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed group"
+                     className="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-black text-xs uppercase tracking-widest py-6 rounded-2xl flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed group"
                    >
                      {actionLoading ? <Loader2 className="animate-spin" size={18}/> : <ShieldCheck size={18} className="group-hover:scale-125 transition-transform" />} 
                      {allChecked ? 'Authorize Release' : 'Complete Checks First'}

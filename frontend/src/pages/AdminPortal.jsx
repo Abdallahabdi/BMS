@@ -36,6 +36,7 @@ const AdminPortal = ({ toggleSidebar }) => {
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [claims, setClaims] = useState([]);
+  const [activeUsersCount, setActiveUsersCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [totalItemsCount, setTotalItemsCount] = useState(0);
 
@@ -44,15 +45,26 @@ const AdminPortal = ({ toggleSidebar }) => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [itemsRes, claimsRes] = await Promise.all([
-        API.get('/items'),
+      // Waxaan ku darnay '/users' si xogta isticmaalayaasha looga soo akhriyo backend-ka
+      const [itemsRes, claimsRes, usersRes] = await Promise.all([
+        API.get('/items?includeReturned=true'),
         API.get('/claims'),
+        API.get('/users').catch(() => ({ data: [] })) // Defensive fallback haddii uusan router-ku jirin
       ]);
+
+      // 1. Alaabta (Items Data)
       const itemsData = Array.isArray(itemsRes.data) ? itemsRes.data : (itemsRes.data?.items || []);
       setItems(itemsData);
       setTotalItemsCount(itemsRes.data?.totalItems || itemsData.length);
+
+      // 2. Sheegashooyinka (Claims Data)
       const claimsData = Array.isArray(claimsRes.data) ? claimsRes.data : (claimsRes.data?.claims || []);
-      setClaims(claimsData.filter(c => c.status === 'pending'));
+      setClaims(claimsData);
+
+      // 3. Isticmaalayaasha (Active Users)
+      const usersData = Array.isArray(usersRes.data) ? usersRes.data : (usersRes.data?.users || []);
+      setActiveUsersCount(usersRes.data?.totalUsers || usersData.length);
+
     } catch (error) {
       console.error('Error fetching admin data:', error);
     } finally {
@@ -71,6 +83,7 @@ const AdminPortal = ({ toggleSidebar }) => {
     }
   };
 
+  // Xogta hadda si toos ah ayay halkan uga xisaabsamaysaa (Dynamic Real-time Stats)
   const stats = [
     { 
       label: 'Total Items',    
@@ -80,17 +93,17 @@ const AdminPortal = ({ toggleSidebar }) => {
       borderClass: 'border-slate-200 hover:border-blue-300',
       link: '/admin/inventory' 
     },
-    { 
-      label: 'Recovered',      
-      value: items.filter(i => ['claimed','returned'].includes(i.status)).length, 
-      icon: <TrendingUp size={20} />, 
-      iconBg: 'bg-emerald-50 text-emerald-600',
-      borderClass: 'border-slate-200 hover:border-emerald-300',
-      link: '/returned' 
+   { 
+     label: 'Recovered',      
+     value: items.filter(i => i.status === 'returned').length,
+     icon: <TrendingUp size={20} />, 
+     iconBg: 'bg-emerald-50 text-emerald-600',
+     borderClass: 'border-slate-200 hover:border-emerald-300',
+     link: '/returned' 
     },
     { 
       label: 'Pending Verif.', 
-      value: claims.length,   
+      value: claims.filter(c => c.status === 'pending').length,   
       icon: <AlertTriangle size={20}/>, 
       iconBg: 'bg-amber-50 text-amber-600',
       borderClass: 'border-slate-200 hover:border-amber-300',
@@ -98,7 +111,7 @@ const AdminPortal = ({ toggleSidebar }) => {
     },
     { 
       label: 'Active Users',   
-      value: '—',             
+      value: activeUsersCount,             
       icon: <Users size={20} />,       
       iconBg: 'bg-violet-50 text-violet-600',
       borderClass: 'border-slate-200 hover:border-violet-300',
@@ -179,9 +192,9 @@ const AdminPortal = ({ toggleSidebar }) => {
                 <ShieldCheck size={18} className="text-emerald-600" />
                 <h2 className="font-bold text-slate-900 text-sm">Verification Queue</h2>
               </div>
-              {claims.length > 0 && (
+              {claims.filter(c => c.status === 'pending').length > 0 && (
                 <span className="bg-amber-50 text-amber-700 text-[10px] font-bold px-2.5 py-1 rounded-full border border-amber-200">
-                  {claims.length} Pending
+                  {claims.filter(c => c.status === 'pending').length} Pending
                 </span>
               )}
             </div>
@@ -191,13 +204,13 @@ const AdminPortal = ({ toggleSidebar }) => {
                 <div className="p-12 flex justify-center">
                   <div className="w-6 h-6 border-2 border-slate-200 border-t-emerald-500 rounded-full animate-spin" />
                 </div>
-              ) : claims.length === 0 ? (
+              ) : claims.filter(c => c.status === 'pending').length === 0 ? (
                 <div className="py-24 text-center">
                   <CheckCircle2 size={36} className="text-emerald-500 mx-auto mb-2" />
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Queue is empty</p>
                 </div>
               ) : (
-                claims.map((claim, idx) => (
+                claims.filter(c => c.status === 'pending').map((claim, idx) => (
                   <div key={idx} className="p-5 hover:bg-slate-50 transition-colors">
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div>

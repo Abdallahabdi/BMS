@@ -20,7 +20,7 @@ import API, { getImageUrl } from '../api/api';
 import { toast } from 'react-toastify';
 
 const CHECKS = [
-  { key: 'tokenMatched',   label: 'Pickup Token Matched', icon: Tag },
+  { key: 'tokenMatched',   label: 'Identity Token Matched', icon: Tag },
   { key: 'ownerConfirmed', label: 'Owner Identity Confirmed', icon: Fingerprint },
   { key: 'itemMatched',    label: 'Item Details Match',   icon: PackageCheck },
   { key: 'idVerified',     label: 'Government ID Verified', icon: Shield },
