@@ -166,11 +166,9 @@ export default function ForgotPassword() {
         <div className="relative z-10 flex flex-col justify-between p-16 w-full text-white">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-green-600 flex items-center justify-center font-black shadow-lg shadow-emerald-600/30">
-              B
+              <img src="logo.png" alt="Logo" />
             </div>
-            <span className="text-xl font-black tracking-wider uppercase bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent">
-              BAAFIN
-            </span>
+            
           </div>
           
           <div>
