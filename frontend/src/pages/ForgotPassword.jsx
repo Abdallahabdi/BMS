@@ -165,10 +165,11 @@ export default function ForgotPassword() {
         
         <div className="relative z-10 flex flex-col justify-between p-16 w-full text-white">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-green-600 flex items-center justify-center font-black shadow-lg shadow-emerald-600/30">
-              <img src="logo.png" alt="Logo" />
+            {/* Logo Desktop */}
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-emerald-500 to-green-600 flex items-center justify-center shadow-lg shadow-emerald-600/30 p-2">
+              <img src="logo.png" alt="Baafin Logo" className="w-full h-full object-contain" />
             </div>
-            
+            <span className="text-xl font-black tracking-wider bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">BAAFIN</span>
           </div>
           
           <div>
@@ -192,6 +193,14 @@ export default function ForgotPassword() {
 
         <div className="w-full max-w-md transform transition-all duration-300">
           
+          {/* Mobile Logo Section (Only shows on small screens) */}
+          <div className="lg:hidden flex flex-col items-center gap-2 mb-6">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-emerald-500 to-green-600 flex items-center justify-center shadow-lg shadow-emerald-600/30 p-2">
+              <img src="logo.png" alt="Baafin Logo" className="w-full h-full object-contain" />
+            </div>
+            <span className="text-lg font-black tracking-widest text-emerald-700">BAAFIN</span>
+          </div>
+
           <div className="bg-white/80 backdrop-blur-3xl rounded-[2.5rem] p-8 sm:p-10 border border-white shadow-[0_20px_50px_-12px_rgba(15,23,42,0.08)] relative overflow-hidden">
             
             <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent" />
@@ -305,11 +314,9 @@ export default function ForgotPassword() {
                 </form>
               )}
 
-              {/* STEP 3: RESET PASSWORD (With Eye Icon Toggle) */}
+              {/* STEP 3: RESET PASSWORD */}
               {step === 'reset' && (
                 <form onSubmit={handleResetPassword} className="space-y-5">
-                  
-                  {/* New Password Input Wrapper */}
                   <div className="space-y-2">
                     <label className="text-xs font-black text-slate-500 uppercase tracking-widest pl-1">
                       New Password
@@ -333,7 +340,6 @@ export default function ForgotPassword() {
                     </div>
                   </div>
 
-                  {/* Confirm Password Input Wrapper */}
                   <div className="space-y-2">
                     <label className="text-xs font-black text-slate-500 uppercase tracking-widest pl-1">
                       Confirm New Password
