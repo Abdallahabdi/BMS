@@ -102,7 +102,7 @@ const AdminInventory = () => {
       formData.append('itemName', editingItem.itemName || '');
       formData.append('category', editingItem.category || '');
       formData.append('itemType', editingItem.itemType || 'lost');
-      // include status when editing
+      
       if (editingItem.status !== undefined) formData.append('status', editingItem.status);
       if (editingItem.description !== undefined) formData.append('description', editingItem.description);
       if (editingItem.color !== undefined) formData.append('color', editingItem.color);
@@ -113,7 +113,7 @@ const AdminInventory = () => {
 
       await API.patch(`/items/${editingItem._id}`, formData);
 
-      toast.success('Item updated');
+      toast.success('Waa la cusboonaysiiyay xogta alaabta');
       setEditingItem(null);
       fetchInventory();
     } catch (err) {
@@ -217,9 +217,9 @@ const AdminInventory = () => {
         </div>
       </div>
 
-      {/* TABLE - desktop (md+) and list cards for mobile */}
+      {/* TABLE & MOBILE CARDS */}
       <div className="bg-white border border-slate-200 shadow-sm rounded-2xl md:rounded-3xl overflow-hidden">
-        {/* Desktop table (hidden on small screens) */}
+        {/* Desktop table */}
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full min-w-[800px]">
             <thead className="bg-slate-50/80 border-b border-slate-200">
@@ -289,10 +289,9 @@ const AdminInventory = () => {
                         className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-blue-600 hover:bg-blue-50 hover:border-blue-200 transition-colors"
                         title="Edit"
                         onClick={() => {
-                          // allow admin or owner to edit
                           const ownerId = item.reportedBy?._id || item.reportedBy || null;
                           if (user?.role !== 'admin' && user?._id !== ownerId) {
-                            toast.error('You are not allowed to edit this item');
+                            toast.error('Adigu xaq uma lihid inaad wax ka bedesho alaabtan');
                             return;
                           }
                           openEdit(item);
@@ -318,7 +317,7 @@ const AdminInventory = () => {
           </table>
         </div>
 
-        {/* Mobile list (visible on small screens) */}
+        {/* Mobile list */}
         <div className="md:hidden divide-y divide-slate-100">
           {Array.isArray(items) && items.map(item => (
             <div key={item._id} className="p-4 flex flex-col gap-4">
@@ -347,7 +346,6 @@ const AdminInventory = () => {
                 </div>
               </div>
 
-              {/* Badhamada Mobile-ka oo ballaran si fududna loo taaban karo */}
               <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-50">
                 <button 
                   onClick={() => navigate(`/admin/verify/${item._id}`)} 
@@ -361,7 +359,7 @@ const AdminInventory = () => {
                   onClick={() => {
                     const ownerId = item.reportedBy?._id || item.reportedBy || null;
                     if (user?.role !== 'admin' && user?._id !== ownerId) {
-                      toast.error('You are not allowed to edit this item');
+                      toast.error('Adigu xaq uma lihid inaad wax ka bedesho alaabtan');
                       return;
                     }
                     openEdit(item);
@@ -407,62 +405,110 @@ const AdminInventory = () => {
         </button>
       </div>
 
-      {/* EDIT MODAL */}
+      {/* EDIT MODAL - HIGHLY RESPONSIVE VERSION */}
       {editingItem && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <h2 className="font-black text-slate-900">Edit Item</h2>
-              <button onClick={() => setEditingItem(null)} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition">Close</button>
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-100 flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in zoom-in-95 duration-150">
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 flex-shrink-0">
+              <div>
+                <h2 className="font-black text-lg text-slate-900">Bedel Sifooyinka Alaabta</h2>
+                <p className="text-xs text-slate-400 font-medium hidden sm:block">Wax ka bedel xogta alaabtan si sax ah</p>
+              </div>
+              <button 
+                onClick={() => setEditingItem(null)} 
+                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors font-bold text-sm"
+              >
+                Xir
+              </button>
             </div>
 
-            <form onSubmit={handleEditSubmit} className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Modal Body - Scrollable on Mobile */}
+            <form onSubmit={handleEditSubmit} className="p-5 md:p-6 overflow-y-auto flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50/50">
               <div>
-                <label className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-1">Item Name</label>
-                <input value={editingItem.itemName || ''} onChange={e => handleEditChange('itemName', e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl" />
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Item Name</label>
+                <input 
+                  value={editingItem.itemName || ''} 
+                  onChange={e => handleEditChange('itemName', e.target.value)} 
+                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all text-sm font-medium shadow-sm" 
+                />
               </div>
 
               <div>
-                <label className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-1">Category</label>
-                <input value={editingItem.category || ''} onChange={e => handleEditChange('category', e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl" />
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Category</label>
+                <input 
+                  value={editingItem.category || ''} 
+                  onChange={e => handleEditChange('category', e.target.value)} 
+                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all text-sm font-medium shadow-sm" 
+                />
               </div>
 
               <div>
-                <label className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-1">Type</label>
-                <select value={editingItem.itemType || 'lost'} onChange={e => handleEditChange('itemType', e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Type</label>
+                <select 
+                  value={editingItem.itemType || 'lost'} 
+                  onChange={e => handleEditChange('itemType', e.target.value)} 
+                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all text-sm font-medium shadow-sm"
+                >
                   <option value="lost">Lost</option>
                   <option value="found">Found</option>
                 </select>
               </div>
 
               <div>
-                <label className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-1">Park Zone</label>
-                <input value={editingItem.parkZone || ''} onChange={e => handleEditChange('parkZone', e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl" />
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Park Zone</label>
+                <input 
+                  value={editingItem.parkZone || ''} 
+                  onChange={e => handleEditChange('parkZone', e.target.value)} 
+                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all text-sm font-medium shadow-sm" 
+                />
               </div>
 
               <div>
-                <label className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-1">Date & Time</label>
-                <input type="datetime-local" value={editingItem.dateTime ? editingItem.dateTime.toString().substring(0, 16) : ''} onChange={e => handleEditChange('dateTime', e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl" />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-1">Description</label>
-                <textarea value={editingItem.description || ''} onChange={e => handleEditChange('description', e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl h-28" />
-              </div>
-
-              <div>
-                <label className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-1">Color</label>
-                <input value={editingItem.color || ''} onChange={e => handleEditChange('color', e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl" />
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Date & Time</label>
+                <input 
+                  type="datetime-local" 
+                  value={editingItem.dateTime ? editingItem.dateTime.toString().substring(0, 16) : ''} 
+                  onChange={e => handleEditChange('dateTime', e.target.value)} 
+                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all text-sm font-medium shadow-sm" 
+                />
               </div>
 
               <div>
-                <label className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-1">Additional Info</label>
-                <input value={editingItem.additionalInfo || ''} onChange={e => handleEditChange('additionalInfo', e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl" />
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Color</label>
+                <input 
+                  value={editingItem.color || ''} 
+                  onChange={e => handleEditChange('color', e.target.value)} 
+                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all text-sm font-medium shadow-sm" 
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Description</label>
+                <textarea 
+                  value={editingItem.description || ''} 
+                  onChange={e => handleEditChange('description', e.target.value)} 
+                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all text-sm font-medium h-24 resize-none shadow-sm" 
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Additional Info</label>
+                <input 
+                  value={editingItem.additionalInfo || ''} 
+                  onChange={e => handleEditChange('additionalInfo', e.target.value)} 
+                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all text-sm font-medium shadow-sm" 
+                />
               </div>
 
               <div>
-                <label className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-1">Status</label>
-                <select value={editingItem.status || 'pending'} onChange={e => handleEditChange('status', e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Status</label>
+                <select 
+                  value={editingItem.status || 'pending'} 
+                  onChange={e => handleEditChange('status', e.target.value)} 
+                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all text-sm font-medium shadow-sm"
+                >
                   <option value="pending">Pending</option>
                   <option value="verified">Verified</option>
                   <option value="matched">Matched</option>
@@ -472,13 +518,33 @@ const AdminInventory = () => {
               </div>
 
               <div>
-                <label className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-1">Image (optional)</label>
-                <input type="file" accept="image/*" onChange={handleEditImage} className="w-full text-sm text-slate-600" />
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Sawirka (Optional)</label>
+                <div className="mt-1 flex items-center justify-center p-3 bg-white border border-dashed border-slate-300 rounded-xl shadow-sm">
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleEditImage} 
+                    className="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 transition-all cursor-pointer" 
+                  />
+                </div>
               </div>
 
-              <div className="md:col-span-2 flex justify-end gap-3 mt-2">
-                <button type="button" onClick={() => setEditingItem(null)} className="px-5 py-3 rounded-xl border border-slate-200">Cancel</button>
-                <button type="submit" disabled={editLoading} className="px-5 py-3 rounded-xl bg-emerald-600 text-white font-black">{editLoading ? 'Saving…' : 'Save Changes'}</button>
+              {/* Action Buttons */}
+              <div className="sm:col-span-2 flex flex-col-reverse sm:flex-row justify-end gap-2.5 pt-4 border-t border-slate-100 mt-2">
+                <button 
+                  type="button" 
+                  onClick={() => setEditingItem(null)} 
+                  className="w-full sm:w-auto px-5 py-3 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm font-bold hover:bg-slate-50 active:scale-[0.99] transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={editLoading} 
+                  className="w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-600 text-white text-sm font-black hover:bg-emerald-500 disabled:opacity-50 active:scale-[0.99] transition-all flex items-center justify-center shadow-md shadow-emerald-600/10"
+                >
+                  {editLoading ? 'Saving...' : 'Save Changes'}
+                </button>
               </div>
             </form>
 
