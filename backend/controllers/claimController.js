@@ -185,6 +185,12 @@ export const updateClaimStatus = async (req, res) => {
         item.status = 'claimed';
         await item.save();
       }
+    } else if (status === 'rejected') {
+      const item = await Item.findById(claim.item);
+      if (item && item.status === 'claimed') {
+        item.status = 'verified'; // Reset to verified if claim is rejected
+        await item.save();
+      }
     }
     await claim.save();
 

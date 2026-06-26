@@ -283,6 +283,18 @@ export const completeHandover = async (req, res) => {
     } catch (logErr) {
       console.error("Logging failed during handover", logErr);
     }
+    
+    // Also notify the claimer if there's an approved claim
+    try {
+      const Claim = (await import('../models/Claim.js')).default;
+      const { createNotification } = await import('./notificationController.js');
+      const claim = await Claim.findOne({ item: item._id, status: 'approved' });
+      if (claim) {
+        await createNotification(claim.claimer, `Handover complete! Your item "${item.itemName}" has been successfully picked up.`);
+      }
+    } catch (notifyErr) {
+      console.error("Failed to notify claimer:", notifyErr);
+    }
 
     res.json({
       message: 'Handover completed',

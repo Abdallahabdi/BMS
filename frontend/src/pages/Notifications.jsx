@@ -47,12 +47,12 @@ export default function Notifications({ toggleSidebar }) {
 
   const markAllAsRead = async () => {
     try {
-      const unread = notifications.filter(n => !n.isRead);
-      await Promise.all(unread.map(n => API.patch(`/notifications/${n._id}/read`)));
+      await API.patch('/notifications/read-all');
       setNotifications(notifications.map(n => ({ ...n, isRead: true })));
       toast.success("Dhammaan waa lala socdaa!");
     } catch (error) {
       console.error("Error marking all as read:", error);
+      toast.error("Waxaa dhacay cilad.");
     }
   };
 
