@@ -28,6 +28,7 @@ import AdminInventory from "./pages/AdminInventory.jsx";
 import AnalyticalReports from "./pages/AnalyticalReports.jsx";
 import ReturnedItems from "./pages/ReturnedItems.jsx";
 import Notifications from "./pages/Notifications.jsx";
+import AdminParkZones from "./pages/AdminParkZones.jsx";
 
 // Components
 import Navbar from "./components/Navbar.jsx";
@@ -151,6 +152,7 @@ function AppContent() {
                 <Route path="/users" element={<ProtectedRoute user={user} adminOnly><AdminUsers toggleSidebar={() => setIsMobileSidebarOpen(true)} /></ProtectedRoute>} />
                 <Route path="/audit-logs" element={<ProtectedRoute user={user} adminOnly><AuditLogs toggleSidebar={() => setIsMobileSidebarOpen(true)} /></ProtectedRoute>} />
                 <Route path="/admin/verify/:itemId" element={<ProtectedRoute user={user} adminOnly><AdminVerificationView toggleSidebar={() => setIsMobileSidebarOpen(true)} /></ProtectedRoute>} />
+                <Route path="/admin/park-zones" element={<ProtectedRoute user={user} adminOnly><AdminParkZones toggleSidebar={() => setIsMobileSidebarOpen(true)} /></ProtectedRoute>} />
 
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>

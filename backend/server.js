@@ -21,6 +21,7 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import auditRoutes from "./routes/auditRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import statsRoutes from "./routes/statsRoutes.js";
+import parkZoneRoutes from "./routes/parkZoneRoutes.js";
 
 import { initSocket } from "./sockets/socketServer.js";
 
@@ -38,7 +39,8 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,        // optional: set this in Render to your frontend URL
   "https://baafin.vercel.app",        // URL-kaaga rasmiga ah ee Frontend Vercel
   "http://localhost:5173",            // Local pc-gaaga Vite
-  "http://localhost:3000"
+  "http://localhost:3000",
+  "http://localhost:3001"
 ].filter(Boolean);
 
 app.use(
@@ -50,9 +52,13 @@ app.use(
       // Accept if origin is explicitly allowed
       if (allowedOrigins.indexOf(origin) !== -1) return callback(null, true);
 
-      // Accept frontend hosted on Render (e.g. <name>.onrender.com)
+      // Accept any localhost origin (any port) for local development
       try {
         const lc = origin.toLowerCase();
+        if (lc.startsWith('http://localhost:') || lc.startsWith('http://127.0.0.1:')) {
+          return callback(null, true);
+        }
+        // Accept frontend hosted on Render (e.g. <name>.onrender.com)
         if (lc.includes('.onrender.com')) return callback(null, true);
       } catch (e) { /* ignore */ }
 
@@ -60,7 +66,6 @@ app.use(
       return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
-    // MAHADSANID: "PATCH" ayaa lagu daray halkan hoose si loogu oggolaado codsiyadaada ogeysiiska iyo wareejinta alaabta.
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
   })
@@ -133,6 +138,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/audit", auditRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/stats", statsRoutes);
+app.use("/api/parkzones", parkZoneRoutes);
 
 // Root Route & Health Check
 app.get("/", (req, res) => res.send("Baafin Backend API is running..."));

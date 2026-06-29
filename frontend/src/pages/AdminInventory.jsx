@@ -16,10 +16,12 @@ import {
   Plus,
   CheckCircle2,
   Clock,
-  Edit3
+  Edit3,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import API, { API_URL, getImageUrl } from '../api/api';
+import API, { getImageUrl } from '../api/api';
 import { UserContext } from '../utils/UserContext';
 import { toast } from 'react-toastify';
 
@@ -36,6 +38,7 @@ const AdminInventory = () => {
   const [editingItem, setEditingItem] = useState(null);
   const [editLoading, setEditLoading] = useState(false);
   const [editImageFile, setEditImageFile] = useState(null);
+  const [togglingImageId, setTogglingImageId] = useState(null);
 
   const itemsPerPage = 8;
 
@@ -56,7 +59,7 @@ const AdminInventory = () => {
         }
       });
 
-      setItems(res.data.items || []);
+      setItems(res.data.items || res.data || []);
       setTotalPages(res.data.totalPages || 1);
     } catch {
       toast.error('Waxaa fashilmay soo shubista alaabta');
@@ -79,9 +82,15 @@ const AdminInventory = () => {
 
   const openEdit = (item) => {
     setEditImageFile(null);
-    // normalize reportedBy id if present
     const ownerId = item.reportedBy?._id || item.reportedBy || null;
-    setEditingItem({ ...item, reportedBy: ownerId });
+    
+    // XALKA DATE-TIME: U baddal qaabka uu input-ka html-ka aqbalayo (YYYY-MM-DDTHH:MM)
+    let formattedDate = '';
+    if (item.dateTime) {
+      formattedDate = new Date(item.dateTime).toISOString().substring(0, 16);
+    }
+
+    setEditingItem({ ...item, reportedBy: ownerId, dateTime: formattedDate });
   };
 
   const handleEditChange = (key, value) => {
@@ -124,6 +133,33 @@ const AdminInventory = () => {
     }
   };
 
+  // XALKA BADHANKA QARINTA/MUUJINTA SAWIRKA:
+  const handleToggleImageVisibility = async (item) => {
+    try {
+      setTogglingImageId(item._id);
+      const nextVisibility = !item.imageVisible;
+
+      // Halkan waxaan u diraynaa { isVisible: true/false } si backend-ku u baddalo
+      const res = await API.patch(`/parkzones/items/${item._id}/toggle-image`, { isVisible: nextVisibility });
+      
+      // La tacaal haddii uu res.data ama res.data.data soo noqdo
+      const updatedVisibility = res.data?.data?.imageVisible !== undefined 
+        ? res.data.data.imageVisible 
+        : (res.data?.imageVisible !== undefined ? res.data.imageVisible : nextVisibility);
+
+      setItems(prev => prev.map(i =>
+        i._id === item._id ? { ...i, imageVisible: updatedVisibility } : i
+      ));
+      
+      toast.success(updatedVisibility ? '🟢 Sawirku wuu muuqdaa' : '🔴 Sawirka waa la qariyay');
+    } catch (err) {
+      console.error(err);
+      toast.error('Toggle-ga way fashilantay');
+    } finally {
+      setTogglingImageId(null);
+    }
+  };
+
   const getItemIcon = category => {
     switch (category) {
       case 'Electronics':
@@ -141,12 +177,14 @@ const AdminInventory = () => {
     }
   };
 
-  const recoveredCount = items.filter(i => i.status === 'returned' || i.status === 'claimed').length;
-  const pendingCount = items.filter(i => i.status === 'pending' || i.status === 'lost' || i.status === 'found').length;
-  const successRate = items.length > 0 ? Math.round((recoveredCount / items.length) * 100) : 0;
+  // Stats-ka si ammaan ah u xisaabi
+  const validItems = Array.isArray(items) ? items : [];
+  const recoveredCount = validItems.filter(i => i.status === 'returned' || i.status === 'claimed').length;
+  const pendingCount = validItems.filter(i => i.status === 'pending' || i.status === 'lost' || i.status === 'found').length;
+  const successRate = validItems.length > 0 ? Math.round((recoveredCount / validItems.length) * 100) : 0;
 
   const stats = [
-    { label: 'Total Items', value: items.length, icon: <Archive size={18} /> },
+    { label: 'Total Items (Page)', value: validItems.length, icon: <Archive size={18} /> },
     { label: 'Recovered', value: recoveredCount, icon: <CheckCircle2 size={18} /> },
     { label: 'Pending', value: pendingCount, icon: <Clock size={18} /> },
     { label: 'Success Rate', value: `${successRate}%`, icon: <CheckCircle2 size={18} /> }
@@ -180,7 +218,7 @@ const AdminInventory = () => {
 
       {/* STATS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-10">
-        {Array.isArray(stats) && stats.map((stat, i) => (
+        {stats.map((stat, i) => (
           <div
             key={i}
             className="bg-white border border-slate-200 shadow-sm rounded-2xl md:rounded-3xl p-4 md:p-6 hover:shadow-md transition-all flex flex-col justify-between"
@@ -211,7 +249,10 @@ const AdminInventory = () => {
             type="text"
             placeholder="Search inventory..."
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
+            onChange={e => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1); // Dib ugu celi boga 1 marka wax la raadinayo
+            }}
             className="w-full bg-slate-50 border border-slate-200 rounded-xl md:rounded-2xl py-3.5 pl-12 md:pl-14 pr-5 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 text-slate-700 placeholder:text-slate-400 font-medium transition-all text-sm md:text-base"
           />
         </div>
@@ -219,193 +260,242 @@ const AdminInventory = () => {
 
       {/* TABLE & MOBILE CARDS */}
       <div className="bg-white border border-slate-200 shadow-sm rounded-2xl md:rounded-3xl overflow-hidden">
-        {/* Desktop table */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full min-w-[800px]">
-            <thead className="bg-slate-50/80 border-b border-slate-200">
-              <tr className="text-left text-slate-500 uppercase text-[10px] font-black tracking-widest">
-                <th className="p-6">Item</th>
-                <th>Date</th>
-                <th>Location</th>
-                <th>Status</th>
-                <th className="text-right pr-8">Actions</th>
-              </tr>
-            </thead>
+        {loading ? (
+          <div className="py-20 flex justify-center items-center">
+            <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : validItems.length === 0 ? (
+          <div className="py-20 text-center text-slate-400 font-bold text-sm uppercase tracking-wider">
+            Wax alaab ah lama helin
+          </div>
+        ) : (
+          <>
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full min-w-[800px]">
+                <thead className="bg-slate-50/80 border-b border-slate-200">
+                  <tr className="text-left text-slate-500 uppercase text-[10px] font-black tracking-widest">
+                    <th className="p-6">Item</th>
+                    <th>Date</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                    <th className="text-right pr-8">Actions</th>
+                  </tr>
+                </thead>
 
-            <tbody>
-              {Array.isArray(items) && items.map(item => (
-                <tr
-                  key={item._id}
-                  className="border-b border-slate-100 hover:bg-slate-50 transition-all last:border-0"
-                >
-                  <td className="p-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 border border-slate-200 shadow-inner overflow-hidden flex items-center justify-center flex-shrink-0">
-                        {item.image ? (
-                          <img
-                            src={getImageUrl(item.image)}
-                            className="w-full h-full object-cover"
-                            alt=""
-                          />
-                        ) : (
-                          getItemIcon(item.category)
-                        )}
-                      </div>
+                <tbody>
+                  {validItems.map(item => (
+                    <tr
+                      key={item._id}
+                      className="border-b border-slate-100 hover:bg-slate-50 transition-all last:border-0"
+                    >
+                      <td className="p-6">
+                        <div className="flex items-center gap-4">
+                          <div className="relative w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 border border-slate-200 shadow-inner overflow-hidden flex items-center justify-center flex-shrink-0">
+                            {item.image ? (
+                              <>
+                                <img
+                                  src={getImageUrl(item.image)}
+                                  className={`w-full h-full object-cover transition-all ${!item.imageVisible ? 'opacity-30 grayscale' : ''}`}
+                                  alt=""
+                                />
+                                {!item.imageVisible && (
+                                  <div className="absolute inset-0 flex items-center justify-center">
+                                    <EyeOff size={16} className="text-slate-600" />
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              getItemIcon(item.category)
+                            )}
+                          </div>
 
-                      <div className="truncate max-w-[200px]">
-                        <h3 className="font-black text-slate-900 truncate">{item.itemName}</h3>
-                        <p className="text-slate-500 text-sm font-medium mt-0.5 truncate">
-                          {item.category}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
+                          <div className="truncate max-w-[200px]">
+                            <h3 className="font-black text-slate-900 truncate">{item.itemName}</h3>
+                            <p className="text-slate-500 text-sm font-medium mt-0.5 truncate">
+                              {item.category}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
 
-                  <td className="font-medium text-slate-600 text-sm">
-                    {new Date(item.createdAt).toLocaleDateString()}
-                  </td>
+                      <td className="font-medium text-slate-600 text-sm">
+                        {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '—'}
+                      </td>
 
-                  <td className="font-medium text-slate-600 text-sm max-w-[150px] truncate">
-                    {item.parkZone}
-                  </td>
+                      <td className="font-medium text-slate-600 text-sm max-w-[150px] truncate">
+                        {item.parkZone || '—'}
+                      </td>
 
-                  <td>
-                    <span className="px-3.5 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] uppercase font-black tracking-widest">
-                      {item.status}
-                    </span>
-                  </td>
+                      <td>
+                        <span className="px-3.5 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] uppercase font-black tracking-widest">
+                          {item.status}
+                        </span>
+                      </td>
 
-                  <td className="text-right pr-8">
-                    <div className="flex justify-end gap-2">
-                      <button
-                        onClick={() => navigate(`/admin/verify/${item._id}`)}
-                        className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200 transition-colors"
-                        title="Verify"
-                      >
-                        <CheckCircle2 size={16} />
-                      </button>
+                      <td className="text-right pr-8">
+                        <div className="flex justify-end gap-2">
+                          {item.image && (
+                            <button
+                              onClick={() => handleToggleImageVisibility(item)}
+                              disabled={togglingImageId === item._id}
+                              className={`p-2.5 rounded-xl border transition-colors ${
+                                item.imageVisible
+                                  ? 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-red-50 hover:border-red-200 hover:text-red-600'
+                                  : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-600'
+                              } disabled:opacity-50`}
+                              title={item.imageVisible ? 'Qar Sawirka' : 'Muuji Sawirka'}
+                            >
+                              {togglingImageId === item._id ? (
+                                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                              ) : item.imageVisible ? (
+                                <EyeOff size={16} />
+                              ) : (
+                                <Eye size={16} />
+                              )}
+                            </button>
+                          )}
 
-                      <button
-                        className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-blue-600 hover:bg-blue-50 hover:border-blue-200 transition-colors"
-                        title="Edit"
-                        onClick={() => {
-                          const ownerId = item.reportedBy?._id || item.reportedBy || null;
-                          if (user?.role !== 'admin' && user?._id !== ownerId) {
-                            toast.error('Adigu xaq uma lihid inaad wax ka bedesho alaabtan');
-                            return;
-                          }
-                          openEdit(item);
-                        }}
-                      >
-                        <Edit3 size={16} />
-                      </button>
+                          <button
+                            onClick={() => navigate(`/admin/verify/${item._id}`)}
+                            className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200 transition-colors"
+                            title="Verify"
+                          >
+                            <CheckCircle2 size={16} />
+                          </button>
 
-                      {user?.role === 'admin' && (
-                        <button
-                          onClick={() => handleDelete(item._id)}
-                          className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-red-600 hover:bg-red-50 hover:border-red-200 transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                          <button
+                            className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-blue-600 hover:bg-blue-50 hover:border-blue-200 transition-colors"
+                            title="Edit"
+                            onClick={() => {
+                              const ownerId = item.reportedBy?._id || item.reportedBy || null;
+                              if (user?.role !== 'admin' && user?._id !== ownerId) {
+                                toast.error('Adigu xaq uma lihid inaad wax ka bedesho alaabtan');
+                                return;
+                              }
+                              openEdit(item);
+                            }}
+                          >
+                            <Edit3 size={16} />
+                          </button>
+
+                          {user?.role === 'admin' && (
+                            <button
+                              onClick={() => handleDelete(item._id)}
+                              className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-red-600 hover:bg-red-50 hover:border-red-200 transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile list */}
+            <div className="md:hidden divide-y divide-slate-100">
+              {validItems.map(item => (
+                <div key={item._id} className="p-4 flex flex-col gap-4">
+                  <div className="flex items-start gap-4">
+                    <div className="relative w-16 h-16 rounded-xl bg-slate-100 text-slate-400 border border-slate-200 overflow-hidden flex items-center justify-center flex-shrink-0">
+                      {item.image ? (
+                        <>
+                          <img src={getImageUrl(item.image)} className={`w-full h-full object-cover ${!item.imageVisible ? 'opacity-30 grayscale' : ''}`} alt="" />
+                          {!item.imageVisible && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <EyeOff size={14} className="text-slate-600" />
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        getItemIcon(item.category)
                       )}
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
 
-        {/* Mobile list */}
-        <div className="md:hidden divide-y divide-slate-100">
-          {Array.isArray(items) && items.map(item => (
-            <div key={item._id} className="p-4 flex flex-col gap-4">
-              <div className="flex items-start gap-4">
-                <div className="w-16 h-16 rounded-xl bg-slate-100 text-slate-400 border border-slate-200 overflow-hidden flex items-center justify-center flex-shrink-0">
-                  {item.image ? (
-                    <img src={getImageUrl(item.image)} className="w-full h-full object-cover" alt="" />
-                  ) : (
-                    getItemIcon(item.category)
-                  )}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start gap-2">
-                    <h3 className="font-black text-slate-900 text-base truncate">{item.itemName}</h3>
-                    <span className="inline-block px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] uppercase font-black tracking-wider flex-shrink-0">
-                      {item.status}
-                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start gap-2">
+                        <h3 className="font-black text-slate-900 text-base truncate">{item.itemName}</h3>
+                        <span className="inline-block px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] uppercase font-black tracking-wider flex-shrink-0">
+                          {item.status}
+                        </span>
+                      </div>
+                      <p className="text-slate-500 text-xs mt-0.5 font-medium">
+                        {item.category} • {item.parkZone || 'Unknown'}
+                      </p>
+                      <p className="text-slate-400 text-xs mt-1">
+                        {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '—'}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-slate-500 text-xs mt-0.5 font-medium">
-                    {item.category} • {item.parkZone || 'Unknown'}
-                  </p>
-                  <p className="text-slate-400 text-xs mt-1">
-                    {new Date(item.createdAt).toLocaleDateString()}
-                  </p>
+
+                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-50">
+                    <button 
+                      onClick={() => navigate(`/admin/verify/${item._id}`)} 
+                      className="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50/50 hover:bg-emerald-50 border border-emerald-100 py-2.5 rounded-xl text-xs font-bold transition-colors"
+                    >
+                      <CheckCircle2 size={14} /> Verify
+                    </button>
+
+                    <button 
+                      className="flex items-center justify-center gap-1.5 text-blue-600 bg-blue-50/50 hover:bg-blue-50 border border-blue-100 py-2.5 rounded-xl text-xs font-bold transition-colors"
+                      onClick={() => {
+                        const ownerId = item.reportedBy?._id || item.reportedBy || null;
+                        if (user?.role !== 'admin' && user?._id !== ownerId) {
+                          toast.error('Adigu xaq uma lihid inaad wax ka bedesho alaabtan');
+                          return;
+                        }
+                        openEdit(item);
+                      }}
+                    >
+                      <Edit3 size={14} /> Edit
+                    </button>
+
+                    {user?.role === 'admin' && (
+                      <button 
+                        onClick={() => handleDelete(item._id)} 
+                        className="flex items-center justify-center gap-1.5 text-red-600 bg-red-50/50 hover:bg-red-50 border border-red-100 py-2.5 rounded-xl text-xs font-bold transition-colors"
+                      >
+                        <Trash2 size={14} /> Delete
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-50">
-                <button 
-                  onClick={() => navigate(`/admin/verify/${item._id}`)} 
-                  className="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50/50 hover:bg-emerald-50 border border-emerald-100 py-2.5 rounded-xl text-xs font-bold transition-colors"
-                >
-                  <CheckCircle2 size={14} /> Verify
-                </button>
-
-                <button 
-                  className="flex items-center justify-center gap-1.5 text-blue-600 bg-blue-50/50 hover:bg-blue-50 border border-blue-100 py-2.5 rounded-xl text-xs font-bold transition-colors"
-                  onClick={() => {
-                    const ownerId = item.reportedBy?._id || item.reportedBy || null;
-                    if (user?.role !== 'admin' && user?._id !== ownerId) {
-                      toast.error('Adigu xaq uma lihid inaad wax ka bedesho alaabtan');
-                      return;
-                    }
-                    openEdit(item);
-                  }}
-                >
-                  <Edit3 size={14} /> Edit
-                </button>
-
-                {user?.role === 'admin' && (
-                  <button 
-                    onClick={() => handleDelete(item._id)} 
-                    className="flex items-center justify-center gap-1.5 text-red-600 bg-red-50/50 hover:bg-red-50 border border-red-100 py-2.5 rounded-xl text-xs font-bold transition-colors"
-                  >
-                    <Trash2 size={14} /> Delete
-                  </button>
-                )}
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </>
+        )}
       </div>
 
       {/* PAGINATION */}
-      <div className="flex justify-between items-center mt-6 md:mt-8 bg-white border border-slate-200 p-3 rounded-2xl shadow-sm max-w-xs mx-auto sm:max-w-none sm:mx-0">
-        <button
-          disabled={currentPage === 1}
-          onClick={() => setCurrentPage(p => p - 1)}
-          className="p-2.5 sm:px-4 sm:py-2 bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 rounded-xl disabled:opacity-40 disabled:hover:bg-slate-50 transition-all font-bold"
-        >
-          <ChevronLeft size={20} />
-        </button>
+      {totalPages > 1 && (
+        <div className="flex justify-between items-center mt-6 md:mt-8 bg-white border border-slate-200 p-3 rounded-2xl shadow-sm max-w-xs mx-auto sm:max-w-none sm:mx-0">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(p => p - 1)}
+            className="p-2.5 sm:px-4 sm:py-2 bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 rounded-xl disabled:opacity-40 disabled:hover:bg-slate-50 transition-all font-bold"
+          >
+            <ChevronLeft size={20} />
+          </button>
 
-        <span className="font-black text-slate-700 text-sm sm:text-base">
-          {currentPage} / {totalPages}
-        </span>
+          <span className="font-black text-slate-700 text-sm sm:text-base">
+            {currentPage} / {totalPages}
+          </span>
 
-        <button
-          disabled={currentPage === totalPages}
-          onClick={() => setCurrentPage(p => p + 1)}
-          className="p-2.5 sm:px-4 sm:py-2 bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 rounded-xl disabled:opacity-40 disabled:hover:bg-slate-50 transition-all font-bold"
-        >
-          <ChevronRight size={20} />
-        </button>
-      </div>
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(p => p + 1)}
+            className="p-2.5 sm:px-4 sm:py-2 bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 rounded-xl disabled:opacity-40 disabled:hover:bg-slate-50 transition-all font-bold"
+          >
+            <ChevronRight size={20} />
+          </button>
+        </div>
+      )}
 
-      {/* EDIT MODAL - HIGHLY RESPONSIVE VERSION */}
+      {/* EDIT MODAL */}
       {editingItem && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-100 flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in zoom-in-95 duration-150">
@@ -424,7 +514,7 @@ const AdminInventory = () => {
               </button>
             </div>
 
-            {/* Modal Body - Scrollable on Mobile */}
+            {/* Modal Body */}
             <form onSubmit={handleEditSubmit} className="p-5 md:p-6 overflow-y-auto flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50/50">
               <div>
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Item Name</label>
@@ -469,7 +559,7 @@ const AdminInventory = () => {
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Date & Time</label>
                 <input 
                   type="datetime-local" 
-                  value={editingItem.dateTime ? editingItem.dateTime.toString().substring(0, 16) : ''} 
+                  value={editingItem.dateTime || ''} 
                   onChange={e => handleEditChange('dateTime', e.target.value)} 
                   className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all text-sm font-medium shadow-sm" 
                 />

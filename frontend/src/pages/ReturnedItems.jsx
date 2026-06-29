@@ -67,7 +67,7 @@ const ReturnedItems = ({ toggleSidebar }) => {
                    </div>
                    
                    <div className="h-48 w-full bg-slate-100 overflow-hidden relative">
-                      {item.image ? (
+                      {item.image && item.imageVisible ? (
                         <img src={getImageUrl(item.image)} alt={item.itemName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-slate-300 font-black uppercase tracking-widest text-xs">

@@ -107,7 +107,7 @@ const UserMatchView = ({ toggleSidebar }) => {
             <p className="text-xs font-bold">YOUR ITEM</p>
 
             <div className="h-48 bg-slate-100 rounded-lg overflow-hidden mt-3">
-              {lost.image ? (
+              {lost.image && lost.imageVisible ? (
                 <img
                   src={getImageUrl(lost.image)}
                   className="w-full h-full object-cover"
@@ -136,7 +136,7 @@ const UserMatchView = ({ toggleSidebar }) => {
             </p>
 
             <div className="h-48 bg-slate-100 rounded-lg overflow-hidden mt-3">
-              {found.image ? (
+              {found.image && found.imageVisible ? (
                 <img
                   src={getImageUrl(found.image)}
                   className="w-full h-full object-cover"

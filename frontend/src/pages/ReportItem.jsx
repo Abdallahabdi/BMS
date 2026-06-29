@@ -5,7 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import {
   Plus, X, Zap, Box, MapPin, Clock, Menu,
   Tag, Palette, AlignLeft, Info, Camera,
-  Flower2, Gamepad2, Car, Utensils, DoorOpen, MoonStar, ArrowRight
+  Flower2, Gamepad2, Car, Utensils, DoorOpen, MoonStar, ArrowRight, Loader2
 } from 'lucide-react';
 
 export default function ReportItem({ user, toggleSidebar }) {
@@ -22,12 +22,30 @@ export default function ReportItem({ user, toggleSidebar }) {
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [zones, setZones] = useState([]);
+  const [zonesLoading, setZonesLoading] = useState(true);
 
   useEffect(() => {
     if (!user) {
       toast.warn("Fadlan marka hore soo gal (Please log in first).");
       navigate("/login");
     }
+    // Load zones from API
+    API.get('/parkzones')
+      .then(res => setZones(res.data || []))
+      .catch(() => {
+        // Fallback to default zones if API fails
+        setZones([
+          { name: "Beerta Ubaxa", icon: "Flower2" },
+          { name: "Goobta Ciyaarta", icon: "Gamepad2" },
+          { name: "Baabuur Dhigashada", icon: "Car" },
+          { name: "Maqaayadda Cuntada", icon: "Utensils" },
+          { name: "Albaabka Weyn", icon: "DoorOpen" },
+          { name: "Masaajidka", icon: "MoonStar" },
+          { name: "Others", icon: "MapPin" }
+        ]);
+      })
+      .finally(() => setZonesLoading(false));
   }, [user, navigate]);
 
   const handleChange = (e) => setFormData(p => ({ ...p, [e.target.name]: e.target.value }));
@@ -66,16 +84,8 @@ export default function ReportItem({ user, toggleSidebar }) {
     }
   };
 
-  const zones = [
-    { name: "Beerta Ubaxa", icon: Flower2, color: "text-pink-500", bg: "bg-pink-500/10" },
-    { name: "Goobta Ciyaarta", icon: Gamepad2, color: "text-orange-500", bg: "bg-orange-500/10" },
-    { name: "Baabuur Dhigashada", icon: Car, color: "text-blue-500", bg: "bg-blue-500/10" },
-    { name: "Maqaayadda Cuntada", icon: Utensils, color: "text-red-500", bg: "bg-red-500/10" },
-    { name: "Albaabka Weyn", icon: DoorOpen, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-    { name: "Masaajidka", icon: MoonStar, color: "text-indigo-500", bg: "bg-indigo-500/10" },
-    { name: "Others", icon: null, color: "text-yellow-500", bg: "bg-yellow-500/10" }
-  ];
   const cats = ["Electronics", "Clothing", "Documents", "Keys", "Bugs", "Other"];
+
 
   return (
     <div className="min-h-screen bg-[#f5f8f6] font-sans selection:bg-[#0df246] selection:text-[#102214] relative overflow-hidden">
@@ -229,17 +239,23 @@ export default function ReportItem({ user, toggleSidebar }) {
                         name="parkZone"
                         value={formData.parkZone}
                         onChange={handleChange}
-                        className="w-full p-4 bg-white/50 backdrop-blur-sm rounded-2xl border border-slate-200/60 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 outline-none focus:border-emerald-500/30 transition-all duration-300 font-bold text-slate-700 appearance-none shadow-sm hover:border-emerald-500/30 cursor-pointer"
+                        disabled={zonesLoading}
+                        className="w-full p-4 bg-white/50 backdrop-blur-sm rounded-2xl border border-slate-200/60 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 outline-none focus:border-emerald-500/30 transition-all duration-300 font-bold text-slate-700 appearance-none shadow-sm hover:border-emerald-500/30 cursor-pointer disabled:opacity-60"
                       >
-                        <option value="" disabled>Select Location / Zone</option>
+                        <option value="" disabled>
+                          {zonesLoading ? 'Goobaha waa la raraa...' : 'Select Location / Zone'}
+                        </option>
                         {zones.map((z) => (
-                          <option key={z.name} value={z.name}>
+                          <option key={z._id || z.name} value={z.name}>
                             {z.name}
                           </option>
                         ))}
                       </select>
                       <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-emerald-500">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                        {zonesLoading
+                          ? <Loader2 size={16} className="animate-spin" />
+                          : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                        }
                       </div>
                     </div>
                   </div>

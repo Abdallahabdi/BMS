@@ -2,7 +2,7 @@ import axios from "axios";
 
 // 1. Prefer explicit env VITE_API_URL. If absent default to the Render hostname (with https).
 // Accept values with or without protocol and normalize to include https:// by default.
-const rawBase = import.meta.env.VITE_API_URL || "https://baafin.onrender.com";
+const rawBase = import.meta.env.VITE_API_URL || "http://localhost:5000";
 let BASE_URL = rawBase;
 if (!/^https?:\/\//i.test(BASE_URL)) {
   BASE_URL = `https://${BASE_URL}`;

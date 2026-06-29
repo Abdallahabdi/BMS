@@ -244,7 +244,7 @@ export default function SearchPage({ toggleSidebar }) {
                 >
                   {/* Image */}
                   <div className="relative h-52 bg-slate-50 overflow-hidden">
-                    {item.image ? (
+                    {item.image && item.imageVisible ? (
                       <img
                         src={getImageUrl(item.image)}
                         alt={item.itemName}

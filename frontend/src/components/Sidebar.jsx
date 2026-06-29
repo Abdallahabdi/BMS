@@ -18,7 +18,8 @@ import {
   Activity,
   Sparkles,
   PackageCheck,
-  Bell
+  Bell,
+  MapPin
 } from 'lucide-react';
 
 const Sidebar = ({ user, isMobileOpen, setIsMobileOpen }) => {
@@ -36,6 +37,7 @@ const Sidebar = ({ user, isMobileOpen, setIsMobileOpen }) => {
     { name: 'Analytics', path: '/admin/reports', icon: <Activity size={20} strokeWidth={2.5} />, role: 'admin' },
     { name: 'Manage Users', path: '/users', icon: <Users size={20} strokeWidth={2.5} />, role: 'admin' },
     { name: 'Inventory', path: '/admin/inventory', icon: <Archive size={20} strokeWidth={2.5} />, role: 'admin' },
+    { name: 'Park Zones', path: '/admin/park-zones', icon: <MapPin size={20} strokeWidth={2.5} />, role: 'admin' },
     { name: 'Activity Logs', path: '/audit-logs', icon: <History size={20} strokeWidth={2.5} />, role: 'admin' },
   ];
 
@@ -79,7 +81,7 @@ const Sidebar = ({ user, isMobileOpen, setIsMobileOpen }) => {
         </div>
 
         {/* NAVIGATION */}
-        <nav className="flex-1 px-5 space-y-2 overflow-y-auto pt-2 pb-8 custom-scrollbar relative z-10">
+        <nav className="flex-1 px-5 space-y-2 overflow-y-auto pt-2 pb-8 sidebar-scroll relative z-10">
           {filteredItems.map((item, idx) => {
             const isActive = location.pathname === item.path;
             const isAdminItem = item.role === 'admin';
