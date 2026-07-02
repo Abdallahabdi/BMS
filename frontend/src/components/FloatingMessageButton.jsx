@@ -120,7 +120,7 @@ const FloatingMessageButton = ({ user }) => {
                 Baafin AI <Sparkles size={11} className="text-emerald-400" />
               </p>
               <p className="text-emerald-400 text-[10px] font-bold uppercase tracking-widest">
-                ● Online · Kaaliye Nidaamka
+                ● Online · 
               </p>
             </div>
             <button

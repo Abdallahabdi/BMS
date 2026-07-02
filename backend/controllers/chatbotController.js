@@ -2,6 +2,9 @@ import Item from "../models/Item.js";
 import User from "../models/User.js";
 import Claim from "../models/Claim.js";
 import ParkZone from "../models/ParkZone.js";
+import { GoogleGenAI } from "@google/genai";
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 /**
  * @desc    Smart system-knowledge chatbot
@@ -81,7 +84,7 @@ export const handleChatbotQuery = async (req, res) => {
         .limit(5);
       if (claims.length === 0) {
         return res.json({
-          response: "Adigu wali ma codsanin alaab. Aad **Catalog** oo codso alaabta aad u maleynayso inay kaagiis tahay.",
+          response: "Adigu wali ma codsanin alaab. Aad **Catalog** oo codso alaabta aad u maleynayso inay taadii tahay.",
           items: []
         });
       }
@@ -135,9 +138,9 @@ export const handleChatbotQuery = async (req, res) => {
     }
 
     // ─── REPORT LOST ITEM ───────────────────────────────────────────
-    if (/\b(soo gudbi|report|lost item|lumiyay|la lumiyay|waxan waayay|hayb|la waayay)\b/.test(q)) {
+    if (/\b(soo gudbi|report|lost item|lumiyay|la lumiyay|luntay|waxan waayay|hayb|la waayay)\b/.test(q)) {
       return res.json({
-        response: `📝 **Sida Alaab Lumid Loogu Soo Gudbiyaa:**\n\n1. Riix **"Report Item"** menu-ga bidixda\n2. Dooro **"I Lost Something"**\n3. Buuxi:\n   • Magaca alaabta\n   • Qaybta (Category)\n   • Midabka\n   • Goobta aad ka lumisay\n   • Taariikhda iyo wakhtiga\n4. Soo geli sawirka (haddii aad haystid)\n5. Riix **"Submit Report"**\n\n⚡ Nidaamku si toos ah ayuu u raadiyaa is-waafaqayaasha!`,
+        response: `📝 **Sida Alaab Luntay Loogu Soo Gudbiyaa:**\n\n1. Riix **"Report Item"** menu-ga bidixda\n2. Dooro **"I Lost Something"**\n3. Buuxi:\n   • Magaca alaabta\n   • Qaybta (Category)\n   • Midabka\n   • Goobta aad ka lumisay\n   • Taariikhda iyo wakhtiga\n4. Soo geli sawirka (haddii aad haystid)\n5. Riix **"Submit Report"**\n\n⚡ Nidaamku si toos ah ayuu u raadiyaa is-waafaqayaasha!`,
         items: []
       });
     }
@@ -177,7 +180,7 @@ export const handleChatbotQuery = async (req, res) => {
     // ─── CONTACT / ADMIN ────────────────────────────────────────────
     if (/\b(contact|xiriir|maamul|admin|xiriiri|gaadhsiis)\b/.test(q)) {
       return res.json({
-        response: `📞 **Xiriirka Maamulka:**\n\nHaddii aad u baahan tahay caawimaad dheeraad ah:\n\n• **Email:** admin@baafin.so\n• **Goobta:** Xarunta Daruusalaam Park\n• **Wakhtiga Shaqada:** Isbeddelka 8:00 AM - 6:00 PM\n\nQofka maamulka wuu joogi doonaa isaga oo kaa caawinaya si toos ah.`,
+        response: `📞 **Xiriirka Maamulka:**\n\nHaddii aad u baahan tahay caawimaad dheeraad ah:\n\n• **Email:** abdallahabdi196@gmail.com\n• **Goobta:** Xarunta Daruusalaam Park\n• **Wakhtiga Shaqada:** Isbeddelka 8:00 AM - 8:00 PM\n\nQofka maamulka wuu joogi doonaa isaga oo kaa caawinaya si toos ah.`,
         items: []
       });
     }
@@ -192,11 +195,36 @@ export const handleChatbotQuery = async (req, res) => {
       });
     }
 
-    // ─── DEFAULT FALLBACK ───────────────────────────────────────────
-    return res.json({
-      response: `Waan gartay fariintaada! 😊\n\nNidaamka Baafin waa mid loo sameeyay inuu bulshada ka caawiyo isku-xirka alaabaha lumay iyo kuwa la helay. Haddii aad doonayso inaad soo gudbiso alaab, fadlan isticmaal qaybta **'Report Item'**. Haddii aad baadi-goobayso alaabtaadii luntay, fadlan booqo qaybta **'Catalog'** si aad u raadiso.\n\nWaan ku faraxsanahay inaan ku caawino! Haddii aad u baahan tahay xog dheeraad ah, mar walba waad na weydiin kartaa.`,
-      items: []
-    });
+    // ─── DEFAULT FALLBACK (GEMINI AI) ──────────────────────────────
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: q }]
+          }
+        ],
+        config: {
+          systemInstruction: `Waxaad tahay 'Baafin AI Assistant', oo ah caawiyaha nidaamka Baafin ee Daruusalaam Park. 
+Nidaamka Baafin wuxuu ka caawiyaa bulshada inay dib u helaan alaabahooda luntay. 
+Markasta u hadal si edeb leh, tixgelin leh, oo xirfad leh (professional).
+Ku jawaab af-Soomaali sax ah. Ka jawaab su'aasha user-ka si fahan fiican leh.
+Haddii su'aashu ay ka baxsan tahay nidaamka lost and found ama Daruusalaam Park, si kooban uga jawaab adigoo haddana si edeb leh u xusuusinaya in shaqadaadu tahay caawinta alaabaha luntay.`
+        }
+      });
+      
+      return res.json({
+        response: response.text,
+        items: []
+      });
+    } catch (aiError) {
+      console.error("Gemini AI error:", aiError);
+      return res.json({
+        response: `Waan gartay fariintaada! 😊\n\nNidaamka Baafin waa mid loo sameeyay inuu bulshada ka caawiyo isku-xirka alaabaha lumay iyo kuwa la helay. Haddii aad doonayso inaad soo gudbiso alaab, fadlan isticmaal qaybta **'Report Item'**. Haddii aad baadi-goobayso alaabtaadii luntay, fadlan booqo qaybta **'Catalog'** si aad u raadiso.\n\nWaan ku faraxsanahay inaan ku caawino!`,
+        items: []
+      });
+    }
 
   } catch (error) {
     console.error("Chatbot error:", error);
