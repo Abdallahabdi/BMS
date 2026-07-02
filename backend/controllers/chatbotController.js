@@ -112,7 +112,7 @@ export const handleChatbotQuery = async (req, res) => {
 
     // ─── PARK ZONES ─────────────────────────────────────────────────
     if (/\b(zone|goob|beerta|park|meel|location|xaafad|dhismo)\b/.test(q)) {
-      const zones = await ParkZone.find({ isActive: true }).sort({ order: 1 });
+      const zones = await ParkZone.find().sort({ createdAt: 1 });
       if (zones.length === 0) {
         return res.json({
           response: "Hadda ma jiraan goobaha beerta oo la diiwaan geliyay. Maamulku wuu ku dari karaa goobaha cusub.",
@@ -194,7 +194,7 @@ export const handleChatbotQuery = async (req, res) => {
 
     // ─── DEFAULT FALLBACK ───────────────────────────────────────────
     return res.json({
-      response: `Waan ka xumahay, si fiican uma fahmin su'aashaada. 🤔\n\nWaxaad i weydiin kartaa:\n• **"Alaabtay"** - Si aad aragto wixii aad soo gudbisay\n• **"Sida nidaamka"** - Tilmaamo\n• **"Tirakoobka"** - Xogta nidaamka\n• **"Goobaha beerta"** - Liiska zones\n• **"Codsigyayga"** - Xaaladda claims\n• **"La celiyay"** - Alaabta la soo celiyay\n\nMa jirtaa su'aal gaar ah?`,
+      response: `Waan gartay fariintaada! 😊\n\nNidaamka Baafin waa mid loo sameeyay inuu bulshada ka caawiyo isku-xirka alaabaha lumay iyo kuwa la helay. Haddii aad doonayso inaad soo gudbiso alaab, fadlan isticmaal qaybta **'Report Item'**. Haddii aad baadi-goobayso alaabtaadii luntay, fadlan booqo qaybta **'Catalog'** si aad u raadiso.\n\nWaan ku faraxsanahay inaan ku caawino! Haddii aad u baahan tahay xog dheeraad ah, mar walba waad na weydiin kartaa.`,
       items: []
     });
 

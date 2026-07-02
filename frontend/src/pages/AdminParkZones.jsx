@@ -7,39 +7,6 @@ import {
   Loader2, CheckCircle2, Sparkles, RefreshCw
 } from 'lucide-react';
 
-// Icon map: string → component
-const ICON_MAP = {
-  Flower2: <Flower2 size={18} />,
-  Gamepad2: <Gamepad2 size={18} />,
-  Car: <Car size={18} />,
-  Utensils: <Utensils size={18} />,
-  DoorOpen: <DoorOpen size={18} />,
-  MoonStar: <MoonStar size={18} />,
-  MapPin: <MapPin size={18} />,
-  Archive: <Archive size={18} />,
-};
-
-const ICON_OPTIONS = [
-  { value: 'Flower2', label: 'Ubax', icon: <Flower2 size={16} /> },
-  { value: 'Gamepad2', label: 'Ciyaar', icon: <Gamepad2 size={16} /> },
-  { value: 'Car', label: 'Baabuur', icon: <Car size={16} /> },
-  { value: 'Utensils', label: 'Cunto', icon: <Utensils size={16} /> },
-  { value: 'DoorOpen', label: 'Albaab', icon: <DoorOpen size={16} /> },
-  { value: 'MoonStar', label: 'Masaajid', icon: <MoonStar size={16} /> },
-  { value: 'MapPin', label: 'Goob', icon: <MapPin size={16} /> },
-  { value: 'Archive', label: 'Makhaasin', icon: <Archive size={16} /> },
-];
-
-const COLOR_OPTIONS = [
-  { value: 'text-pink-500', bg: 'bg-pink-500/10', label: 'Pink' },
-  { value: 'text-orange-500', bg: 'bg-orange-500/10', label: 'Orange' },
-  { value: 'text-blue-500', bg: 'bg-blue-500/10', label: 'Blue' },
-  { value: 'text-red-500', bg: 'bg-red-500/10', label: 'Red' },
-  { value: 'text-emerald-500', bg: 'bg-emerald-500/10', label: 'Green' },
-  { value: 'text-indigo-500', bg: 'bg-indigo-500/10', label: 'Indigo' },
-  { value: 'text-yellow-500', bg: 'bg-yellow-500/10', label: 'Yellow' },
-  { value: 'text-violet-500', bg: 'bg-violet-500/10', label: 'Violet' },
-];
 
 const AdminParkZones = () => {
   const [zones, setZones] = useState([]);
@@ -51,10 +18,7 @@ const AdminParkZones = () => {
   const [activeTab, setActiveTab] = useState('zones'); // 'zones' | 'images'
 
   const [form, setForm] = useState({
-    name: '',
-    icon: 'MapPin',
-    color: 'text-emerald-500',
-    bg: 'bg-emerald-500/10'
+    name: ''
   });
 
   useEffect(() => {
@@ -95,7 +59,7 @@ const AdminParkZones = () => {
       setAddLoading(true);
       await API.post('/parkzones', form);
       toast.success('✅ Goob cusub si guul leh ayaa loo daray!');
-      setForm({ name: '', icon: 'MapPin', color: 'text-emerald-500', bg: 'bg-emerald-500/10' });
+      setForm({ name: '' });
       fetchZones();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Goobta ku darida way fashilantay');
@@ -130,7 +94,6 @@ const AdminParkZones = () => {
     }
   };
 
-  const selectedColorOption = COLOR_OPTIONS.find(c => c.value === form.color) || COLOR_OPTIONS[4];
 
   return (
     <div className="min-h-screen bg-[#F8F9FC] p-4 sm:p-6 md:p-8 font-sans">
@@ -200,63 +163,6 @@ const AdminParkZones = () => {
                   />
                 </div>
 
-                {/* Icon */}
-                <div>
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">
-                    Astaanta
-                  </label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {ICON_OPTIONS.map(opt => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => setForm(p => ({ ...p, icon: opt.value }))}
-                        title={opt.label}
-                        className={`p-2.5 rounded-xl border flex flex-col items-center gap-1 transition-all text-[9px] font-bold ${
-                          form.icon === opt.value
-                            ? 'border-emerald-500 bg-emerald-50 text-emerald-600'
-                            : 'border-slate-200 bg-white text-slate-500 hover:border-emerald-300'
-                        }`}
-                      >
-                        {opt.icon}
-                        <span>{opt.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Color */}
-                <div>
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">
-                    Midabka
-                  </label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {COLOR_OPTIONS.map(opt => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => setForm(p => ({ ...p, color: opt.value, bg: opt.bg }))}
-                        className={`p-2.5 rounded-xl border flex flex-col items-center gap-1 transition-all text-[9px] font-bold ${
-                          form.color === opt.value
-                            ? 'border-emerald-500 ring-2 ring-emerald-500/20'
-                            : 'border-slate-200 hover:border-slate-300'
-                        } ${opt.bg}`}
-                      >
-                        <span className={`w-4 h-4 rounded-full ${opt.value.replace('text-', 'bg-')}`} />
-                        <span className={opt.value}>{opt.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Preview */}
-                <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Muuqaalka</p>
-                  <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full ${selectedColorOption.bg} border border-current/10`}>
-                    <span className={form.color}>{ICON_MAP[form.icon]}</span>
-                    <span className={`text-xs font-bold ${form.color}`}>{form.name || 'Goobta Cusub'}</span>
-                  </div>
-                </div>
 
                 <button
                   type="submit"
@@ -302,16 +208,13 @@ const AdminParkZones = () => {
                     <div key={zone._id} className="px-6 py-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors group">
                       <div className="flex items-center gap-4">
                         <span className="text-[10px] font-black text-slate-300 w-5 text-center">{idx + 1}</span>
-                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${zone.bg || 'bg-emerald-500/10'} border border-current/10`}>
-                          <span className={zone.color || 'text-emerald-500'}>
-                            {ICON_MAP[zone.icon] || <MapPin size={18} />}
+                        <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-emerald-500/10 border border-current/10">
+                          <span className="text-emerald-500">
+                            <MapPin size={18} />
                           </span>
                         </div>
                         <div>
                           <p className="font-black text-slate-900 text-sm">{zone.name}</p>
-                          <p className="text-[10px] text-slate-400 font-medium mt-0.5">
-                            {zone.isActive ? '● Active' : '○ Inactive'}
-                          </p>
                         </div>
                       </div>
                       <button

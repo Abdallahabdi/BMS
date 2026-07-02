@@ -3,12 +3,12 @@ import Item from "../models/Item.js";
 
 // Default zones to seed if none exist
 const DEFAULT_ZONES = [
-  { name: "Beerta Ubaxa", icon: "Flower2", color: "text-pink-500", bg: "bg-pink-500/10", order: 1 },
-  { name: "Goobta Ciyaarta", icon: "Gamepad2", color: "text-orange-500", bg: "bg-orange-500/10", order: 2 },
-  { name: "Baabuur Dhigashada", icon: "Car", color: "text-blue-500", bg: "bg-blue-500/10", order: 3 },
-  { name: "Maqaayadda Cuntada", icon: "Utensils", color: "text-red-500", bg: "bg-red-500/10", order: 4 },
-  { name: "Albaabka Weyn", icon: "DoorOpen", color: "text-emerald-500", bg: "bg-emerald-500/10", order: 5 },
-  { name: "Masaajidka", icon: "MoonStar", color: "text-indigo-500", bg: "bg-indigo-500/10", order: 6 }
+  { name: "Beerta Ubaxa" },
+  { name: "Goobta Ciyaarta" },
+  { name: "Baabuur Dhigashada" },
+  { name: "Maqaayadda Cuntada" },
+  { name: "Albaabka Weyn" },
+  { name: "Masaajidka" }
 ];
 
 /**
@@ -18,12 +18,12 @@ const DEFAULT_ZONES = [
  */
 export const getParkZones = async (req, res) => {
   try {
-    let zones = await ParkZone.find().sort({ order: 1, createdAt: 1 });
+    let zones = await ParkZone.find().sort({ createdAt: 1 });
 
     // Seed defaults if empty
     if (zones.length === 0) {
       await ParkZone.insertMany(DEFAULT_ZONES);
-      zones = await ParkZone.find().sort({ order: 1 });
+      zones = await ParkZone.find().sort({ createdAt: 1 });
     }
 
     res.json(zones);
@@ -39,7 +39,7 @@ export const getParkZones = async (req, res) => {
  */
 export const createParkZone = async (req, res) => {
   try {
-    const { name, icon, color, bg } = req.body;
+    const { name } = req.body;
     if (!name || !name.trim()) {
       return res.status(400).json({ message: "Zone name is required" });
     }
@@ -49,13 +49,8 @@ export const createParkZone = async (req, res) => {
       return res.status(400).json({ message: "Zone with this name already exists" });
     }
 
-    const count = await ParkZone.countDocuments();
     const zone = await ParkZone.create({
-      name: name.trim(),
-      icon: icon || "MapPin",
-      color: color || "text-emerald-500",
-      bg: bg || "bg-emerald-500/10",
-      order: count + 1
+      name: name.trim()
     });
 
     res.status(201).json(zone);
